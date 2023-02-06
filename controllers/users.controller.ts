@@ -6,7 +6,7 @@ const data = require("../accounts.ts");
 
 const router = express.Router();
 
-var selectedUser;
+let selectedUser;
 
 router.post("/", (req, res) => {
   selectedUser = data.users.find(
@@ -46,6 +46,7 @@ router.post("/adduser", (req, res) => {
   );
 
   return res.send({ res: "User added" });
+  //^^^^^ it works here, but not below with /getlog route
 });
 
 router.get("/getlog", (req, res) => {
@@ -58,12 +59,16 @@ router.get("/getlog", (req, res) => {
     fs.readFile(fileName, "utf8", (err, data) => {
       if (err) {
         console.error(err);
-        return;
+        return ;
       }
 
       return res.send(data);
     });
   }
+  //return res.send({"res": "No Data"});
+  //^^^^^ "Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client"
+  //always comes up in the terminal, but the app hangs waiting for a response if it's uncommented
+  //AND selectedUser is not defined (user is not logged in);
 });
 
 module.exports = router;
