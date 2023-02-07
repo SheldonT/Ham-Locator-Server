@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
 import { Routes } from '../controllers/routes';
 import cors from 'cors';
 
