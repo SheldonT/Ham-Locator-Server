@@ -1,8 +1,11 @@
-const express = require('express')
-const router = express.Router()
+import { Request, Response, Router } from "express"
 
-router.get('/', (req, res) => {
-    res.send("response message")
-})
+export const UsersController = () => {
+    const routes = Router();
 
-module.exports = router
+    routes.get('/', (req: Request, res: Response) => {
+        res.send("response message")
+    })
+
+    return routes;
+}

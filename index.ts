@@ -7,16 +7,9 @@ async function start(){
   const app = express();
   const port = process.env.PORT;
 
-  // ExpressLoader(app);
+  ExpressLoader(app);
 
-  await ExpressLoader(app);
-
-  app.get('/', function (_req, res) {
-    res.send('Hello World!');
-  });
-
-  const server = app
-    .listen(port, () => {
+  app.listen(port, () => {
       console.log(`Server listening on port: ${port}`);
     })
     .on('error', (err) => {
@@ -26,9 +19,6 @@ async function start(){
     .on('close', async () => {
       console.log('SERVER CLOSE')
     });
-  process.on('SIGINT', async () => { //si
-    server.close();
-  });
 }
 
 start();
