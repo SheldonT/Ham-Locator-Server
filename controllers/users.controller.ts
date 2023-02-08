@@ -71,7 +71,7 @@ router.get("/getlog", (req, res) => {
           console.error(err);
           return;
         }
-
+        //error handling for non-existent file.
         return res.send(JSON.parse(data));
       });
     }
@@ -106,6 +106,8 @@ router.post("/writerecord", (req, res) => {
               fileContent[i] = req.body.record;
             }
           }
+
+          //error checking. What if record with req.body.record.id doesn't exist?
         } else {
           req.body.record.id = fileContent.length + 1;
           fileContent.push(req.body.record);
