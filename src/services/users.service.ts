@@ -8,6 +8,8 @@ export default class UserService{
 
         /**
          * In reality we will access the DB from the service layer.
+         * const user: User = await mysql.query(...)
+         * return user;
          */
 
         return example;
