@@ -1,11 +1,21 @@
 import { Request, Response, Router } from "express"
+import UserService from "../services/users.service";
 
-export const UsersController = (): Router => {
-    const routes = Router();
+export default class UsersController{
+    public routes = Router();
+    public service = new UserService();
 
-    routes.get('/', (req: Request, res: Response) => {
-        res.send("response message")
-    })
+    constructor(){
+        this.routes.get('/', (req: Request, res: Response) => {
+            res.send("response message")
+        });
 
-    return routes;
+        this.routes.get('/:id', async (req: Request, res: Response) => {
+            const id = req.params.id;
+            const resp = await this.service.getUser(id)
+            res.send(resp)
+        });
+
+        // Add more routes inside the constructor
+    }
 }

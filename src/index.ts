@@ -1,16 +1,16 @@
-import express from 'express';
-import * as dotenv from 'dotenv'
+import express, { Express } from 'express';
+import dotenv from 'dotenv';
 import { ExpressLoader } from './loaders/express-loader';
 
 async function start(){
   dotenv.config()
-  const app = express();
+  const app: Express = express();
   const port = process.env.PORT;
 
   ExpressLoader(app);
 
   app.listen(port, () => {
-      console.log(`Server listening on port: ${port}`);
+      console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
     })
     .on('error', (err) => {
       console.log(err)
