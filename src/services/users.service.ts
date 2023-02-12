@@ -13,5 +13,5 @@ export default class UserService{
         return example;
     }
 
-    
+    // Add more service layer functions as needed to this class
 }
