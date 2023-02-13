@@ -2,33 +2,42 @@
 
 const express = require("express");
 const fs = require("fs");
+const db = require("../database.ts");
 const data = require("../accounts.ts");
 
 const router = express.Router();
 
 let authUser;
 
-router.post("/", (req, res) => {
-  authUser = data.users.find(
-    (u) => req.body.username === u.username && req.body.passwd === u.passwd
-  );
+router.post("/", async (req, res) => {
+  //authUser = data.users.find(
+  //(u) => req.body.username === u.username && req.body.passwd === u.passwd
+  //);
 
-  if (authUser) {
+  authUser = await db
+    .promise()
+    .query(
+      `SELECT email FROM USERS WHERE username='${req.body.username}' AND passwd='${req.body.passwd}' `
+    );
+
+  if (authUser[0]) {
     res.send({ auth: "true" });
   } else {
     res.send({ auth: "false" });
   }
 });
 
-router.post("/adduser", (req, res) => {
+router.post("/adduser", async (req, res) => {
   let newUser = req.body;
-  let logFilePath = "";
+  /*let logFilePath = "";
 
-  newUser.id = `${data.users.length + 1}`;
+  //newUser.id = `${data.users.length + 1}`;
 
   if (data.users.find((u) => newUser.username === u.username)) {
     return res.send({ res: "User already registered" });
   }
+
+
 
   if (data.users.find((e) => newUser.email === e.email)) {
     return res.send({ res: "Email already exists" }); //will the client "hang" until a response is recieved?
@@ -54,7 +63,26 @@ router.post("/adduser", (req, res) => {
   });
 
   return res.send({ res: "User added" });
-  //^^^^^ it works here, but not below with /getlog route
+  //^^^^^ it works here, but not below with /getlog route*/
+
+  const id = await db.promise().query(`SELECT MAX(id) FROM users`);
+
+  const check = await db
+    .promise()
+    .query(
+      `SELECT * FROM users WHERE username='${newUser.username}' OR email='${newUser.email}' `
+    );
+
+  if (check[0].length !== 0) {
+    console.log("User Exists");
+    return res.send("User Exists");
+  } else {
+    await db.promise().query(
+      `INSERT INTO users (username, email, country, gridloc, privilege, units, passwd) VALUES ('${newUser.username}', '${newUser.email}', '${newUser.country}', 
+        '${newUser.gridloc}', '${newUser.priv}', '${newUser.units}', '${newUser.passwd}')`
+    );
+  }
+  return res.send("User Added");
 });
 
 router.get("/getlog", (req, res) => {
