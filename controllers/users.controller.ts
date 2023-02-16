@@ -14,13 +14,13 @@ router.post("/", async (req, res) => {
   //(u) => req.body.username === u.username && req.body.passwd === u.passwd
   //);
 
-  const user = await db
+  const data = await db
     .promise()
     .query(
       `SELECT * FROM users WHERE username='${req.body.username}' AND passwd='${req.body.passwd}' `
-    );
+    )[0]; //<= [0][0]
 
-  console.log(user[0][0].username);
+  console.log(data[0]);
 
   if (user[0].length !== 0) {
     user.map((u) => {
@@ -37,6 +37,8 @@ router.post("/adduser", async (req, res) => {
 
   const maxId = await db.promise().query(`SELECT MAX(id) FROM users`);
   const newUserId = parseInt(Object.values(maxId[0][0])[0]) + 1;
+
+  //check for auto generating ID. (uuid)
 
   const exists = await db
     .promise()
