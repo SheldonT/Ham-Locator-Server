@@ -2,85 +2,79 @@
 
 const express = require("express");
 const fs = require("fs");
+const db = require("../database.ts");
 const data = require("../accounts.ts");
 
 const router = express.Router();
 
 let authUser;
 
-router.post("/", (req, res) => {
-  authUser = data.users.find(
-    (u) => req.body.username === u.username && req.body.passwd === u.passwd
-  );
+router.post("/", async (req, res) => {
+  //authUser = data.users.find(
+  //(u) => req.body.username === u.username && req.body.passwd === u.passwd
+  //);
 
-  if (authUser) {
+  const user = await db
+    .promise()
+    .query(
+      `SELECT * FROM users WHERE username='${req.body.username}' AND passwd='${req.body.passwd}' `
+    );
+
+  console.log(user[0][0].username);
+
+  if (user[0].length !== 0) {
+    user.map((u) => {
+      authUser = u.username;
+    });
     res.send({ auth: "true" });
   } else {
     res.send({ auth: "false" });
   }
 });
 
-router.post("/adduser", (req, res) => {
+router.post("/adduser", async (req, res) => {
   let newUser = req.body;
-  let logFilePath = "";
 
-  newUser.id = `${data.users.length + 1}`;
+  const maxId = await db.promise().query(`SELECT MAX(id) FROM users`);
+  const newUserId = parseInt(Object.values(maxId[0][0])[0]) + 1;
 
-  if (data.users.find((u) => newUser.username === u.username)) {
-    return res.send({ res: "User already registered" });
+  const exists = await db
+    .promise()
+    .query(
+      `SELECT * FROM users WHERE username='${newUser.username}' OR email='${newUser.email}' `
+    );
+
+  if (exists[0].length !== 0) {
+    return res.send("User Exists");
+  } else {
+    await db.promise().query(
+      `INSERT INTO users (id, username, email, country, gridloc, privilege, units, passwd) VALUES ( '${newUserId}', '${newUser.username}', '${newUser.email}', '${newUser.country}', 
+        '${newUser.gridloc}', '${newUser.priv}', '${newUser.units}', '${newUser.passwd}')`
+    );
   }
-
-  if (data.users.find((e) => newUser.email === e.email)) {
-    return res.send({ res: "Email already exists" }); //will the client "hang" until a response is recieved?
-  }
-
-  data.users.push(req.body);
-  logFilePath = `./logs/${newUser.username}.ts`;
-
-  fs.writeFile(
-    "./accounts.ts",
-    `module.exports.users = ${JSON.stringify(data.users)}`,
-    (err) => {
-      if (err) {
-        console.error(err);
-      }
-    }
-  );
-
-  fs.writeFile(logFilePath, `[]`, { flag: "w+" }, (err) => {
-    if (err) {
-      console.error(err);
-    }
-  });
-
-  return res.send({ res: "User added" });
-  //^^^^^ it works here, but not below with /getlog route
+  return res.send("User Added");
 });
 
-router.get("/getlog", (req, res) => {
-  let fileName = "";
+router.get("/getlog", async (req, res) => {
+  let authUserLog = [];
+  const requestedUser = req.body.username;
 
-  if (authUser) {
-    if (authUser.username !== req.body.username) {
+  console.log(authUser);
+  console.log(requestedUser);
+
+  if (authUser[0].length !== 0) {
+    if (authUser[0].username !== requestedUser) {
       return res.send({ res: "User not authenticated" });
     } else {
-      fileName = `./logs/${authUser.username}.json`;
+      authUserLog = await db
+        .promise()
+        .query(`SELECT * FROM logs WHERE username='${requestedUser}'`);
 
-      fs.readFile(fileName, "utf8", (err, data) => {
-        if (err) {
-          console.error(err);
-          return;
-        }
-        //error handling for non-existent file.
-        return res.send(JSON.parse(data));
-      });
+      return res.send(authUserLog[0]);
     }
   } else {
     return res.send({ res: "No Data" });
   }
-  //^^^^^ "Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client"
-  //always comes up in the terminal, but the app hangs waiting for a response if it's uncommented
-  //AND selectedUser is not defined (user is not logged in);
 });
 
 router.post("/writerecord", (req, res) => {
