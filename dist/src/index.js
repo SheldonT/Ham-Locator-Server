@@ -14,24 +14,22 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const dotenv_1 = __importDefault(require("dotenv"));
 const express_loader_1 = require("./loaders/express-loader");
+const dotenv_1 = __importDefault(require("dotenv"));
 function start() {
     return __awaiter(this, void 0, void 0, function* () {
         dotenv_1.default.config();
         const app = (0, express_1.default)();
-        const port = 3007; //process.env.PORT;
+        const port = process.env.PORT;
         (0, express_loader_1.ExpressLoader)(app);
         app
-            .listen(port, () => {
-            console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
-        })
+            .listen(port, () => console.log(`[server]: Server is running on port ${port}`))
             .on("error", (err) => {
             console.log(err);
             process.exit(1);
         })
             .on("close", () => __awaiter(this, void 0, void 0, function* () {
-            console.log("SERVER CLOSE");
+            console.log(`[server]: Server closed`);
         }));
     });
 }

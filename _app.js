@@ -2,7 +2,7 @@
 
 const express = require("express");
 const cors = require("cors");
-const users = require("./controllers/users.controller.ts");
+const users = require("./__controllers/users.controller.js");
 const { config } = require("dotenv");
 
 config();
