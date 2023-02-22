@@ -2,12 +2,12 @@
 import * as mysql from "mysql2";
 
 class Conn {
-  public readonly connection: mysql.Connection;
+  public connection: mysql.Connection;
   constructor() {
     this.connection = mysql.createConnection({
-      host: "localhost",
-      user: "sheldon",
-      password: "tP1yhN67~vi",
+      host: process.env.MYSQL_HOST,
+      user: process.env.USER,
+      password: process.env.MYSQL_PWD,
       database: "HamLocator",
     });
 
@@ -21,5 +21,3 @@ class Conn {
 }
 
 export default Conn;
-
-//tP1yhN67~vi

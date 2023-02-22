@@ -1,7 +1,3 @@
-/__controllers
-/logs
-_app.js
-accounts.ts
 
 # dependencies
 /node_modules

@@ -1,7 +1,7 @@
 /** @format */
 
 export interface Record {
-  recordId: number;
+  recordId?: number;
   userId: number;
   username: string;
   userCall: string;
@@ -14,7 +14,7 @@ export interface Record {
   serialSent?: number;
   serialRecv?: number;
   comment?: string;
-  lag: number;
+  lat: number;
   lng: number;
   country?: string;
   details?: string;
