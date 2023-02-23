@@ -128,7 +128,7 @@ export default class LogService {
   async aGetLog(id: string): Promise<Record[]> {
     let res: Record[] = [];
 
-    this.db.connection.query(
+    const response = this.db.connection.query(
       `SELECT * FROM logs WHERE userId='${id}'`,
       (err: any, result: Record[]) => {
         if (err) {
@@ -140,8 +140,9 @@ export default class LogService {
         }
       }
     );
-    console.log(res);
-    return res;
+
+    console.log(response);
+    return response;
   }
   //************************************************ */
 }

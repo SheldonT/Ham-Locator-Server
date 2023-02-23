@@ -63,7 +63,7 @@ export default class UserService {
               resolve(`User ${newUser.username} added`);
             } else {
               console.log(`User ${newUser.username} already exists`);
-              resolve(`User ${newUser.username} already exists`);
+              reject(`User ${newUser.username} already exists`);
             }
           }
         }

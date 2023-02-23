@@ -41,8 +41,8 @@ export default class LogsController {
 
     this.routes.get("/async", async (req: Request, res: Response) => {
       const id: any = req.query.id;
-
-      res.send(await this.service.aGetLog(id));
+      const response = await this.service.aGetLog(id);
+      res.send(response);
     });
   }
 }
