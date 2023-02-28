@@ -13,7 +13,6 @@ export default class LogsController {
 
     this.routes.get("/", async (req: Request, res: Response) => {
       const id: any = req.query.id;
-
       res.send(await this.service.getLog(id));
     });
 
@@ -41,8 +40,12 @@ export default class LogsController {
 
     this.routes.get("/async", async (req: Request, res: Response) => {
       const id: any = req.query.id;
-      const response = await this.service.aGetLog(id);
-      res.send(response);
+
+      //result from db query is passed as a parameter to the callback function,
+      //and sent to client.
+      await this.service.aGetLog(id, (result: any) => {
+        res.send(result);
+      });
     });
   }
 }

@@ -7,18 +7,17 @@ import { User } from "../models/user.model";
 export default class UsersController {
   public routes = Router();
   public service;
-  public authUser: string = "-1";
+  public authUserId: string = "-1";
 
   constructor(dbConn: any) {
     this.service = new UserService(dbConn);
 
-    this.routes.get("/", async (req: Request, res: Response) => {
-      const un: any = req.query.username;
-      const pw: any = req.query.passwd;
+    this.routes.post("/", async (req: Request, res: Response) => {
+      const un: any = req.body.username;
+      const pw: any = req.body.passwd;
 
-      this.authUser = await this.service.authUser(un, pw);
-
-      res.send(this.authUser);
+      this.authUserId = await this.service.authUser(un, pw);
+      res.send(this.authUserId);
     });
 
     this.routes.get("/getuser", async (req: Request, res: Response) => {

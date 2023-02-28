@@ -1,6 +1,6 @@
 /** @format */
 
-import { User } from "../models/user.model";
+import { User, userColumnNames } from "../models/user.model";
 
 export default class UserService {
   public db: any;
@@ -12,13 +12,28 @@ export default class UserService {
   authUser(username: string, passwd: string): Promise<string> {
     return new Promise((resolve, reject) => {
       this.db.connection.query(
-        `SELECT id FROM users WHERE username='${username}' and passwd='${passwd}'`,
+        `SELECT userId FROM users WHERE callsign='${username}' and passwd='${passwd}'`,
         (err: any, results: string[]) => {
           if (err) {
             console.log(err);
             reject(err);
           } else {
-            console.log(results[0]);
+            if (results.length !== 0) {
+              console.log(results);
+              this.db.connection.query(
+                `DELETE FROM authusers WHERE userId = ${Object.values(
+                  results[0]
+                )}`
+              );
+              this.db.connection.query(
+                `INSERT INTO authusers (userId) VALUES (${Object.values(
+                  results[0]
+                )}) `
+              );
+            } else {
+              console.log("User doesn't exist");
+              resolve("-1");
+            }
             resolve(results[0]);
           }
         }
@@ -26,11 +41,10 @@ export default class UserService {
     });
   }
 
-  //should async before getUser cause the function to return a promise?
   getUser(id: string): Promise<User> {
     return new Promise((resolve, reject) => {
       this.db.connection.query(
-        `SELECT * FROM users WHERE id='${id}'`,
+        `SELECT * FROM users WHERE userId='${id}'`,
         (err: any, results: User[]) => {
           if (err) {
             console.log(err);
@@ -48,7 +62,7 @@ export default class UserService {
   addUser(newUser: User): Promise<string> {
     return new Promise((resolve, reject) => {
       this.db.connection.query(
-        `SELECT * FROM users WHERE username='${newUser.username}' OR email='${newUser.email}'`,
+        `SELECT * FROM users WHERE callsign='${newUser.call}' OR email='${newUser.email}'`,
         (err: any, results: User[]) => {
           if (err) {
             console.log(err);
@@ -56,14 +70,14 @@ export default class UserService {
           } else {
             if (results.length === 0) {
               this.db.connection
-                .query(`INSERT INTO users (username, email, country, gridloc, privilege, units, passwd) VALUES ('${newUser.username}', '${newUser.email}', '${newUser.country}', 
+                .query(`INSERT INTO users (${userColumnNames}) VALUES ('${newUser.call}', '${newUser.email}', '${newUser.country}', 
               '${newUser.gridloc}', '${newUser.privilege}', '${newUser.units}', '${newUser.password}')`);
 
-              console.log(`User ${newUser.username} added`);
-              resolve(`User ${newUser.username} added`);
+              console.log(`User ${newUser.call} added`);
+              resolve(`User ${newUser.call} added`);
             } else {
-              console.log(`User ${newUser.username} already exists`);
-              reject(`User ${newUser.username} already exists`);
+              console.log(`User ${newUser.call} already exists`);
+              resolve(`User ${newUser.call} already exists`);
             }
           }
         }

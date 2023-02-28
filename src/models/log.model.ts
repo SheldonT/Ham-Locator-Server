@@ -3,8 +3,7 @@
 export interface Record {
   recordId: number;
   userId: number;
-  username: string;
-  userCall: string;
+  contactCall: string;
   freq: number;
   mode: string;
   sigRepSent: number;
@@ -18,16 +17,15 @@ export interface Record {
   lng: number;
   country?: string;
   details?: string;
-  date: string;
-  time: string;
+  contactDate: string;
+  contactTime: string;
   utc: number;
 }
 
 export const RecordSQL = `
-  recordId INTEGER PRIMARY KEY,
+  recordId INTEGER AUTO_INCREMENT PRIMARY KEY,
   userId INTEGER,
-  username TEXT NOT NULL,
-  userCall VARCHAR(255),
+  contactCall VARCHAR(255),
   freq DOUBLE,
   mode VARCHAR(255),
   sigRepSent INTEGER,
@@ -41,7 +39,28 @@ export const RecordSQL = `
   lng DOUBLE,
   country VARCHAR(255),
   details VARCHAR(255),
-  date DATE,
-  time TIME,
+  contactDate DATE,
+  contactTime TIME,
   utc INTEGER
   `;
+
+export const logColumnNames: string[] = [
+  "userId",
+  "contactCall",
+  "freq",
+  "mode",
+  "sigRepSent",
+  "sigRepRecv",
+  "name",
+  "grid",
+  "serialSent",
+  "serialRecv",
+  "comment",
+  "lat",
+  "lng",
+  "country",
+  "details",
+  "contactDate",
+  "contactTime",
+  "utc",
+];

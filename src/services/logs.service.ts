@@ -1,30 +1,9 @@
 /** @format */
 
-import { Record } from "../models/log.model";
+import { Record, logColumnNames } from "../models/log.model";
 
 export default class LogService {
   public db: any;
-  private logColumnDescription: string[] = [
-    "userId",
-    "username",
-    "userCall",
-    "freq",
-    "mode",
-    "sigRepSent",
-    "sigRepRecv",
-    "name",
-    "grid",
-    "serialSent",
-    "serialRecv",
-    "comment",
-    "lat",
-    "lng",
-    "country",
-    "details",
-    "contactDate",
-    "contactTime",
-    "utc",
-  ];
 
   constructor(db: any) {
     this.db = db;
@@ -32,6 +11,16 @@ export default class LogService {
 
   getLog(id: number): Promise<Record[]> {
     return new Promise((resolve, reject) => {
+      let authCheck: any;
+
+      this.db.connection.query(
+        `SELECT * FROM authusers WHERE userId='${id}'`,
+        (err: any, result: any) => {
+          authCheck = result;
+        }
+      );
+
+      console.log(authCheck);
       this.db.connection.query(
         `SELECT * FROM logs WHERE userId='${id}'`,
         (err: any, result: Record[]) => {
@@ -65,7 +54,7 @@ export default class LogService {
   addRecord(newRecord: Record): Promise<string> {
     return new Promise((resolve, reject) => {
       this.db.connection.query(
-        `INSERT INTO logs (${this.logColumnDescription}) VALUES ('${newRecord.userId}', '${newRecord.username}', '${newRecord.userCall}', '${newRecord.freq}', '${newRecord.mode}', '${newRecord.sigRepSent}', '${newRecord.sigRepRecv}', '${newRecord.name}', '${newRecord.grid}', '${newRecord.serialSent}', '${newRecord.serialRecv}', '${newRecord.comment}', '${newRecord.lat}', '${newRecord.lng}', '${newRecord.country}', '${newRecord.details}', '${newRecord.date}', '${newRecord.time}', '${newRecord.utc}')`,
+        `INSERT INTO logs (${logColumnNames}) VALUES ('${newRecord.userId}', '${newRecord.contactCall}', '${newRecord.freq}', '${newRecord.mode}', '${newRecord.sigRepSent}', '${newRecord.sigRepRecv}', '${newRecord.name}', '${newRecord.grid}', '${newRecord.serialSent}', '${newRecord.serialRecv}', '${newRecord.comment}', '${newRecord.lat}', '${newRecord.lng}', '${newRecord.country}', '${newRecord.details}', '${newRecord.contactDate}', '${newRecord.contactTime}', '${newRecord.utc}')`,
         (err: any, result: any) => {
           if (err) {
             console.log(err);
@@ -88,12 +77,11 @@ export default class LogService {
     return new Promise((resolve, reject) => {
       this.db.connection.query(
         `REPLACE INTO logs (
-          recordId, ${this.logColumnDescription}
+          recordId, ${logColumnNames}
           ) VALUES (
             '${newRecord.recordId}', 
-            '${newRecord.userId}', 
-            '${newRecord.username}', 
-            '${newRecord.userCall}', 
+            '${newRecord.userId}',  
+            '${newRecord.contactCall}', 
             '${newRecord.freq}', 
             '${newRecord.mode}', 
             '${newRecord.sigRepSent}', 
@@ -107,8 +95,8 @@ export default class LogService {
             '${newRecord.lng}', 
             '${newRecord.country}', 
             '${newRecord.details}', 
-            '${newRecord.date}', 
-            '${newRecord.time}', 
+            '${newRecord.contactDate}', 
+            '${newRecord.contactTime}', 
             '${newRecord.utc}'
           )`,
         (err: any, result: Record) => {
@@ -125,24 +113,33 @@ export default class LogService {
 
   //************************************************ */
 
-  async aGetLog(id: string): Promise<Record[]> {
-    let res: Record[] = [];
+  //async function returning a value with type any
 
-    const response = this.db.connection.query(
+  async aGetLog(id: string, callBack: Function): Promise<any> {
+    //assign the return value of the query to resp. This value is not actually used, see comment by return statement.
+    const resp = this.db.connection.query(
       `SELECT * FROM logs WHERE userId='${id}'`,
+
+      //result parameter in the query callback function has the type Record
       (err: any, result: Record[]) => {
         if (err) {
           console.log(err);
           return err;
-        } else {
-          res = result;
-          console.log(res);
         }
+        //result: Record[] is now passed as the parameter to callBack(), which is a callback function
+        //passed as a parameter to aGetLog (phew...). The value of result is now available when calling
+        //aGetLog in logs.controller.ts.
+        return callBack(result);
       }
     );
 
-    console.log(response);
-    return response;
+    //Cound not return resp, because db.connection.query isn't a promise. I kept getting this error:
+    //Error: You have tried to call .then(), .catch(), or invoked await on the result of query that is
+    //not a promise, which is a programming error.
+    //I'm not sure if this is actually an async function without returning a value.
+
+    //return resp;
+
+    //************************************************ */
   }
-  //************************************************ */
 }

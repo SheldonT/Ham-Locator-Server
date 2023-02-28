@@ -17,7 +17,7 @@ class Conn {
       if (err) {
         return console.error("error: " + err.message);
       }
-      console.log("Connected to the MySQL server.");
+      console.log("[server]: Connected to the MySQL server.");
     });
 
     this.connection.query(`CREATE TABLE IF NOT EXISTS logs (${RecordSQL})`);
