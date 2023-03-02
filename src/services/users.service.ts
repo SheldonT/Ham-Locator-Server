@@ -44,15 +44,19 @@ export default class UserService {
   getUser(id: string): Promise<User> {
     return new Promise((resolve, reject) => {
       this.db.connection.query(
-        `SELECT * FROM users WHERE userId='${id}'`,
+        `SELECT * FROM users INNER JOIN authusers ON users.userId='${id}' AND authusers.userId='${id}'`,
         (err: any, results: User[]) => {
           if (err) {
             console.log(err);
             reject(err);
           } else {
-            console.log(results[0]);
-
-            resolve(results[0]);
+            if (results.length === 0) {
+              reject(
+                `[server]: User with id ${id} is not authenticated, or doesn't exist`
+              );
+            } else {
+              resolve(results[0]);
+            }
           }
         }
       );
@@ -70,8 +74,18 @@ export default class UserService {
           } else {
             if (results.length === 0) {
               this.db.connection
-                .query(`INSERT INTO users (${userColumnNames}) VALUES ('${newUser.call}', '${newUser.email}', '${newUser.country}', 
-              '${newUser.gridloc}', '${newUser.privilege}', '${newUser.units}', '${newUser.password}')`);
+                .query(`INSERT INTO users (${userColumnNames}) VALUES (
+                  '${newUser.call}',
+                  '${newUser.email}',
+                  '${newUser.country}',
+                  '${newUser.lat}',
+                  '${newUser.lng}',
+                  '${newUser.gridloc}',
+                  '${newUser.privilege}',
+                  '${newUser.units}',
+                  '${newUser.itu}',
+                  '${newUser.utc}',
+                  '${newUser.password}')`);
 
               console.log(`User ${newUser.call} added`);
               resolve(`User ${newUser.call} added`);

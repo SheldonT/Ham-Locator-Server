@@ -27,13 +27,23 @@ export default class LogsController {
 
     this.routes.post("/addrecord", async (req: Request, res: Response) => {
       const newRecord = req.body;
-      const newRecordConfirm = await this.service.addRecord(newRecord);
+
+      console.log(req.body);
+
+      const newRecordConfirm = await this.service
+        .addRecord(newRecord, newRecord.userId)
+        .catch((e) => console.log(e));
 
       res.send(newRecordConfirm);
     });
 
     this.routes.get("/editrecord", async (req: Request, res: Response) => {
-      const edited = await this.service.editRecord(req.body);
+      const uid: number = req.body[0].userId;
+      const record: Record = req.body[1];
+
+      const edited = await this.service
+        .editRecord(record, uid)
+        .catch((e) => console.log(e));
 
       res.send(edited);
     });
@@ -43,7 +53,7 @@ export default class LogsController {
 
       //result from db query is passed as a parameter to the callback function,
       //and sent to client.
-      await this.service.aGetLog(id, (result: any) => {
+      this.service.aGetLog(id, (result: any) => {
         res.send(result);
       });
     });

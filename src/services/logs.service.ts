@@ -11,21 +11,10 @@ export default class LogService {
 
   getLog(id: number): Promise<Record[]> {
     return new Promise((resolve, reject) => {
-      let authCheck: any;
-
       this.db.connection.query(
-        `SELECT * FROM authusers WHERE userId='${id}'`,
-        (err: any, result: any) => {
-          authCheck = result;
-        }
-      );
-
-      console.log(authCheck);
-      this.db.connection.query(
-        `SELECT * FROM logs WHERE userId='${id}'`,
+        `SELECT * FROM logs INNER JOIN authusers ON logs.userId='${id}' AND authusers.userId='${id}'`,
         (err: any, result: Record[]) => {
           if (err) {
-            //console.log(err);
             reject(err);
           } else {
             resolve(result);
@@ -38,7 +27,7 @@ export default class LogService {
   getRecord(uid: number, rid: number): Promise<Record> {
     return new Promise((resolve, reject) => {
       this.db.connection.query(
-        `SELECT * FROM logs WHERE recordId='${rid}' AND userId='${uid}'`,
+        `SELECT * FROM logs INNER JOIN authusers ON logs.recordId='${rid}' AND logs.userId='${uid}' AND authusers.userId='${uid}'`,
         (err: any, result: Record) => {
           if (err) {
             console.log(err);
@@ -51,20 +40,79 @@ export default class LogService {
     });
   }
 
-  addRecord(newRecord: Record): Promise<string> {
+  addRecord(newRecord: Record, uid: number): Promise<string> {
     return new Promise((resolve, reject) => {
       this.db.connection.query(
-        `INSERT INTO logs (${logColumnNames}) VALUES ('${newRecord.userId}', '${newRecord.contactCall}', '${newRecord.freq}', '${newRecord.mode}', '${newRecord.sigRepSent}', '${newRecord.sigRepRecv}', '${newRecord.name}', '${newRecord.grid}', '${newRecord.serialSent}', '${newRecord.serialRecv}', '${newRecord.comment}', '${newRecord.lat}', '${newRecord.lng}', '${newRecord.country}', '${newRecord.details}', '${newRecord.contactDate}', '${newRecord.contactTime}', '${newRecord.utc}')`,
+        `SELECT * FROM authusers WHERE userId='${uid}'`,
+        (err: any, result: any) => {
+          if (err) {
+            console.log(err);
+            reject(err);
+            return;
+          }
+          if (result.length === 0) {
+            reject(`[server]: User with id ${uid} is not Authenticated`);
+            return;
+          }
+          if (result[0].userId === uid) {
+            this.db.connection.query(
+              `INSERT INTO logs (${logColumnNames}) VALUES ('${newRecord.userId}', '${newRecord.contactCall}', '${newRecord.freq}', '${newRecord.mode}', '${newRecord.sigRepSent}', '${newRecord.sigRepRecv}', '${newRecord.name}', '${newRecord.grid}', '${newRecord.serialSent}', '${newRecord.serialRecv}', '${newRecord.comment}', '${newRecord.lat}', '${newRecord.lng}', '${newRecord.country}', '${newRecord.details}', '${newRecord.contactDate}', '${newRecord.contactTime}', '${newRecord.utc}')`,
+              (err: any, result: any) => {
+                if (err) {
+                  console.log(err);
+                  reject(err);
+                } else {
+                  if (result.affectedRows) {
+                    console.log(result);
+                    resolve(result);
+                  } else {
+                    reject(
+                      `[server]: No record added. MySQL server response: ${result}`
+                    );
+                  }
+                }
+              }
+            );
+          }
+        }
+      );
+    });
+  }
+
+  editRecord(newRecord: Record, id: number): Promise<Record> {
+    return new Promise((resolve, reject) => {
+      this.db.connection.query(
+        `UPDATE logs, authusers
+        SET
+            logs.userId='${newRecord.userId}',  
+            logs.contactCall='${newRecord.contactCall}', 
+            logs.freq='${newRecord.freq}', 
+            logs.mode='${newRecord.mode}', 
+            logs.sigRepSent='${newRecord.sigRepSent}', 
+            logs.sigRepRecv='${newRecord.sigRepRecv}', 
+            logs.name='${newRecord.name}', 
+            logs.grid='${newRecord.grid}', 
+            logs.serialSent='${newRecord.serialSent}', 
+            logs.serialRecv='${newRecord.serialRecv}', 
+            logs.comment='${newRecord.comment}', 
+            logs.lat='${newRecord.lat}', 
+            logs.lng='${newRecord.lng}', 
+            logs.country='${newRecord.country}', 
+            logs.details='${newRecord.details}', 
+            logs.contactDate='${newRecord.contactDate}', 
+            logs.contactTime='${newRecord.contactTime}', 
+            logs.utc='${newRecord.utc}'
+          WHERE logs.userId='${id}' AND authusers.userId='${id}' AND logs.recordId=${newRecord.recordId}`,
         (err: any, result: any) => {
           if (err) {
             console.log(err);
             reject(err);
           } else {
-            if (result) {
-              console.log(result);
-              resolve(result);
+            if (result.affectedRows === 0) {
+              reject(
+                `[server]: Owner of recordId ${newRecord.recordId} is not authenticated, or the record doesn't exist.`
+              );
             } else {
-              console.log("No record added.");
               resolve(result);
             }
           }
@@ -73,71 +121,28 @@ export default class LogService {
     });
   }
 
-  editRecord(newRecord: Record): Promise<Record> {
-    return new Promise((resolve, reject) => {
-      this.db.connection.query(
-        `REPLACE INTO logs (
-          recordId, ${logColumnNames}
-          ) VALUES (
-            '${newRecord.recordId}', 
-            '${newRecord.userId}',  
-            '${newRecord.contactCall}', 
-            '${newRecord.freq}', 
-            '${newRecord.mode}', 
-            '${newRecord.sigRepSent}', 
-            '${newRecord.sigRepRecv}', 
-            '${newRecord.name}', 
-            '${newRecord.grid}', 
-            '${newRecord.serialSent}', 
-            '${newRecord.serialRecv}', 
-            '${newRecord.comment}', 
-            '${newRecord.lat}', 
-            '${newRecord.lng}', 
-            '${newRecord.country}', 
-            '${newRecord.details}', 
-            '${newRecord.contactDate}', 
-            '${newRecord.contactTime}', 
-            '${newRecord.utc}'
-          )`,
-        (err: any, result: Record) => {
-          if (err) {
-            console.log(err);
-            reject(err);
-          } else {
-            resolve(result);
-          }
-        }
-      );
-    });
-  }
+  //deleteRecord (uid: number, recordId: number): Promise<any> {
+  // new Promise((resolve: any, reject: any) =>{});
+  // }
 
   //************************************************ */
 
   //async function returning a value with type any
 
   async aGetLog(id: string, callBack: Function): Promise<any> {
-    //assign the return value of the query to resp. This value is not actually used, see comment by return statement.
-    const resp = this.db.connection.query(
+    this.db.connection.query(
       `SELECT * FROM logs WHERE userId='${id}'`,
 
-      //result parameter in the query callback function has the type Record
       (err: any, result: Record[]) => {
         if (err) {
           console.log(err);
           return err;
         }
-        //result: Record[] is now passed as the parameter to callBack(), which is a callback function
-        //passed as a parameter to aGetLog (phew...). The value of result is now available when calling
-        //aGetLog in logs.controller.ts.
+        console.log("In Callback");
         return callBack(result);
       }
     );
-
-    //Cound not return resp, because db.connection.query isn't a promise. I kept getting this error:
-    //Error: You have tried to call .then(), .catch(), or invoked await on the result of query that is
-    //not a promise, which is a programming error.
-    //I'm not sure if this is actually an async function without returning a value.
-
+    console.log("Outside callback");
     //return resp;
 
     //************************************************ */

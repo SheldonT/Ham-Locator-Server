@@ -7,7 +7,6 @@ import { User } from "../models/user.model";
 export default class UsersController {
   public routes = Router();
   public service;
-  public authUserId: string = "-1";
 
   constructor(dbConn: any) {
     this.service = new UserService(dbConn);
@@ -16,13 +15,15 @@ export default class UsersController {
       const un: any = req.body.username;
       const pw: any = req.body.passwd;
 
-      this.authUserId = await this.service.authUser(un, pw);
-      res.send(this.authUserId);
+      const authUserId = await this.service
+        .authUser(un, pw)
+        .catch((e) => console.log(e));
+      res.send(authUserId);
     });
 
     this.routes.get("/getuser", async (req: Request, res: Response) => {
       const id: any = req.query.id;
-      const resp = await this.service.getUser(id);
+      const resp = await this.service.getUser(id).catch((e) => console.log(e));
 
       res.send(resp);
     });
