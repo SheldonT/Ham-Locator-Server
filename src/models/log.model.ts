@@ -1,8 +1,8 @@
 /** @format */
 
 export interface Record {
-  recordId: number;
-  userId: number;
+  recordId: string;
+  userId: string;
   contactCall: string;
   freq: number;
   mode: string;
@@ -23,8 +23,8 @@ export interface Record {
 }
 
 export const RecordSQL = `
-  recordId INTEGER AUTO_INCREMENT PRIMARY KEY,
-  userId INTEGER,
+  recordId VARCHAR(255) PRIMARY KEY,
+  userId VARCHAR(255),
   contactCall VARCHAR(255),
   freq DOUBLE,
   mode VARCHAR(255),
@@ -45,6 +45,7 @@ export const RecordSQL = `
   `;
 
 export const logColumnNames: string[] = [
+  "recordId",
   "userId",
   "contactCall",
   "freq",
