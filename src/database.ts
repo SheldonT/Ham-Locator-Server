@@ -22,6 +22,9 @@ class Conn {
 
     this.connection.query(`CREATE TABLE IF NOT EXISTS logs (${RecordSQL})`);
     this.connection.query(`CREATE TABLE IF NOT EXISTS users (${UserSQL})`);
+    this.connection.query(
+      `CREATE TABLE IF NOT EXISTS authusers (userId VARCHAR(255) PRIMARY KEY)`
+    );
   }
 }
 

@@ -9,18 +9,21 @@ export default class LogService {
     this.db = db;
   }
 
-  getLog(id: number): Promise<Record[]> {
+  getLog(id: number, decend: string): Promise<Record[]> {
     return new Promise((resolve, reject) => {
-      this.db.connection.query(
-        `SELECT * FROM logs INNER JOIN authusers ON logs.userId='${id}' AND authusers.userId='${id}'`,
-        (err: any, result: Record[]) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(result);
-          }
+      let query: string = `SELECT * FROM logs INNER JOIN authusers ON logs.userId='${id}' AND authusers.userId='${id}'`;
+
+      if (decend === "true") {
+        query = `SELECT * FROM logs INNER JOIN authusers ON logs.userId='${id}' AND authusers.userId='${id}' ORDER BY recordId DESC`;
+      }
+
+      this.db.connection.query(query, (err: any, result: Record[]) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(result);
         }
-      );
+      });
     });
   }
 
@@ -56,7 +59,7 @@ export default class LogService {
           }
           if (result[0].userId === uid) {
             this.db.connection.query(
-              `INSERT INTO logs (${logColumnNames}) VALUES ('${newRecord.userId}', '${newRecord.contactCall}', '${newRecord.freq}', '${newRecord.mode}', '${newRecord.sigRepSent}', '${newRecord.sigRepRecv}', '${newRecord.name}', '${newRecord.grid}', '${newRecord.serialSent}', '${newRecord.serialRecv}', '${newRecord.comment}', '${newRecord.lat}', '${newRecord.lng}', '${newRecord.country}', '${newRecord.details}', '${newRecord.contactDate}', '${newRecord.contactTime}', '${newRecord.utc}')`,
+              `INSERT INTO logs (${logColumnNames}) VALUES (UUID(), '${newRecord.userId}', '${newRecord.contactCall}', '${newRecord.freq}', '${newRecord.mode}', '${newRecord.sigRepSent}', '${newRecord.sigRepRecv}', '${newRecord.name}', '${newRecord.grid}', '${newRecord.serialSent}', '${newRecord.serialRecv}', '${newRecord.comment}', '${newRecord.lat}', '${newRecord.lng}', '${newRecord.country}', '${newRecord.details}', '${newRecord.contactDate}', '${newRecord.contactTime}', '${newRecord.utc}')`,
               (err: any, result: any) => {
                 if (err) {
                   console.log(err);
@@ -102,7 +105,7 @@ export default class LogService {
             logs.contactDate='${newRecord.contactDate}', 
             logs.contactTime='${newRecord.contactTime}', 
             logs.utc='${newRecord.utc}'
-          WHERE logs.userId='${id}' AND authusers.userId='${id}' AND logs.recordId=${newRecord.recordId}`,
+          WHERE logs.userId='${id}' AND authusers.userId='${id}' AND logs.recordId='${newRecord.recordId}'`,
         (err: any, result: any) => {
           if (err) {
             console.log(err);
@@ -121,15 +124,35 @@ export default class LogService {
     });
   }
 
-  //deleteRecord (uid: number, recordId: number): Promise<any> {
-  // new Promise((resolve: any, reject: any) =>{});
-  // }
+  // delete logs.* from logs inner join authusers on authusers.userId=authusers.userId where recordId='786bb1fb-c581-11ed-82ae-346f24ea4a5a';
+
+  deleteRecord(uid: string, recordId: string): Promise<any> {
+    return new Promise((resolve: any, reject: any) => {
+      this.db.connection.query(
+        `DELETE logs.* FROM logs INNER JOIN authusers ON authusers.userId='${uid}' WHERE recordId='${recordId}'`,
+        (err: any, result: any) => {
+          if (err) {
+            reject(err);
+          } else {
+            if (result.affectedRows === 0) {
+              reject(
+                `[server]: Record with id ${recordId} doesn't exist, or does not belong to user id ${uid}`
+              );
+            } else {
+              resolve(result);
+            }
+          }
+        }
+      );
+    });
+  }
 
   //************************************************ */
 
   //async function returning a value with type any
 
   async aGetLog(id: string, callBack: Function): Promise<any> {
+    //let r: Record[] = [];
     this.db.connection.query(
       `SELECT * FROM logs WHERE userId='${id}'`,
 
@@ -140,10 +163,11 @@ export default class LogService {
         }
         console.log("In Callback");
         return callBack(result);
+        // r = result;
       }
     );
     console.log("Outside callback");
-    //return resp;
+    //return r;
 
     //************************************************ */
   }
