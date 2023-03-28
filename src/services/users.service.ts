@@ -1,6 +1,6 @@
 /** @format */
 
-import { User, userColumnNames } from "../models/user.model";
+import { UserData, userColumnNames } from "../models/user.model";
 
 export default class UserService {
   public db: any;
@@ -9,14 +9,13 @@ export default class UserService {
     this.db = db;
   }
 
-  authUser(username: string, passwd: string): Promise<string> {
+  authUser(username: string, passwd: string): Promise<any> {
     return new Promise((resolve, reject) => {
       this.db.connection.query(
         `SELECT userId FROM users WHERE callsign='${username}' AND passwd=SHA2('${passwd}',512)`,
-        (err: any, results: string[]) => {
+        (err: any, results: any) => {
           if (err) {
-            console.log(err);
-            reject(err);
+            reject(`[server]: Error while authenticating user => ${err}`);
           } else {
             if (results.length !== 0) {
               this.db.connection.query(
@@ -30,8 +29,10 @@ export default class UserService {
                 )}') `
               );
             } else {
-              console.log("User doesn't exist");
-              resolve("-1");
+              console.log(
+                `[server]: Error while authenticating user => User with username ${username} doesn't exist`
+              );
+              resolve({ userId: "-1" });
             }
             resolve(results[0]);
           }
@@ -40,7 +41,7 @@ export default class UserService {
     });
   }
 
-  getUser(id: any): Promise<User> {
+  getUser(id: any): Promise<UserData> {
     return new Promise((resolve, reject) => {
       let noPasswd: string[] = [];
 
@@ -56,32 +57,26 @@ export default class UserService {
 
       this.db.connection.query(
         `SELECT ${noPasswd} FROM users INNER JOIN authusers ON users.userId='${id}' AND authusers.userId='${id}'`,
-        (err: any, results: User[]) => {
-          if (err) {
-            console.log(err);
-            reject(err);
+        (err: any, results: UserData[]) => {
+          if (err || results.length === 0) {
+            reject(
+              `[server]: Error while fetching user info. User with id ${id} is not authenticated, or doesn't exist => ${err}`
+            );
           } else {
-            if (results.length === 0) {
-              reject(
-                `[server]: User with id ${id} is not authenticated, or doesn't exist`
-              );
-            } else {
-              resolve(results[0]);
-            }
+            resolve(results[0]);
           }
         }
       );
     });
   }
 
-  addUser(newUser: User): Promise<string> {
+  addUser(newUser: UserData): Promise<string> {
     return new Promise((resolve, reject) => {
       this.db.connection.query(
         `SELECT * FROM users WHERE callsign='${newUser.call}' OR email='${newUser.email}'`,
-        (err: any, results: User[]) => {
+        (err: any, results: UserData[]) => {
           if (err) {
-            console.log(err);
-            reject(err);
+            reject(`[server]: Error while adding new user => ${err}`);
           } else {
             if (results.length === 0) {
               this.db.connection
@@ -97,12 +92,12 @@ export default class UserService {
                   '${newUser.itu}',
                   '${newUser.utc}',
                   SHA2('${newUser.password}',512))`);
-
-              console.log(`User ${newUser.call} added`);
+              console.log(`[server]: User ${newUser.call} added`);
               resolve(`User ${newUser.call} added`);
             } else {
-              console.log(`User ${newUser.call} already exists`);
-              resolve(`User ${newUser.call} already exists`);
+              reject(
+                `[server]: User with username ${newUser.call} or email ${newUser.email} already exists`
+              );
             }
           }
         }
@@ -110,7 +105,7 @@ export default class UserService {
     });
   }
 
-  editUser(newUser: User, id: number): Promise<User> {
+  editUser(newUser: UserData, id: string): Promise<UserData> {
     let includedUserInfo = `${
       newUser.call ? `users.callSign='${newUser.call}', ` : ``
     }${newUser.email ? `users.email='${newUser.email}', ` : ``}${
@@ -136,14 +131,15 @@ export default class UserService {
           WHERE users.userId='${id}' AND authusers.userId='${id}' `,
         (err: any, result: any) => {
           if (err) {
-            console.log(err);
-            reject(err);
+            reject(`[Server}: Error while updating user informaiton => ${err}`);
           } else {
             if (result.affectedRows !== 0) {
               console.log(`[server]: User with id ${id} successfuly updated.`);
               resolve(result);
             } else {
-              reject(`[server]: No record with userId ${id}.`);
+              reject(
+                `[server]: No record with userId ${id} in user database, or user is not authenticated.`
+              );
             }
           }
         }

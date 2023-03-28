@@ -43,7 +43,7 @@ export default class LogsController {
 
       const edited = await this.service
         .editRecord(record, uid)
-        .catch((e) => console.log(e));
+        .catch((e) => console.log(console.log(e)));
 
       res.send(edited);
     });
@@ -54,7 +54,7 @@ export default class LogsController {
 
       const deleted = await this.service
         .deleteRecord(uid, recordId)
-        .catch((e) => console.log(e));
+        .catch((e) => console.log(console.log(e)));
 
       res.send(deleted);
     });

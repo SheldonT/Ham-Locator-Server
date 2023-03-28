@@ -17,7 +17,7 @@ async function start() {
       console.log(`[server]: Server is running on port ${port}`)
     )
     .on("error", (err) => {
-      console.log(err);
+      console.log(`[server]: Error while starting server => ${err}`);
       process.exit(1);
     })
     .on("close", async () => {

@@ -1,5 +1,5 @@
 /** @format */
-export interface User {
+export interface UserData {
   userId: string; //primary key;
   call: string;
   email?: string;

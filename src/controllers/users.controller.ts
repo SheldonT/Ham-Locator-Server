@@ -2,7 +2,7 @@
 
 import { Request, Response, Router } from "express";
 import UserService from "../services/users.service";
-import { User } from "../models/user.model";
+import { UserData } from "../models/user.model";
 
 export default class UsersController {
   public routes = Router();
@@ -18,6 +18,22 @@ export default class UsersController {
       const authUserId = await this.service
         .authUser(username, passwd)
         .catch((e) => console.log(e));
+      console.log(req.sessionID);
+      console.log(req.session);
+
+      /*req.session.regenerate(function (err) {
+        if (err) res.send(err);
+        // store user information in session, typically a user id
+        //console.log(req.session);
+
+        // save the session before redirection to ensure page
+        // load does not happen before session is saved
+        req.session.save(function (err) {
+          if (err) return res.send(err);
+          res.redirect("/");
+        });
+      });*/
+
       res.send(authUserId);
     });
 
@@ -30,28 +46,26 @@ export default class UsersController {
     });
 
     this.routes.post("/adduser", async (req: Request, res: Response) => {
-      const newUser: User = req.body;
+      const newUser: UserData = req.body;
 
       if (Object.keys(newUser).length === 0) {
         console.log("No user data found");
         res.send("No user data found.");
       } else {
-        const resp = await this.service.addUser(newUser);
+        const resp = await this.service
+          .addUser(newUser)
+          .catch((e) => console.log(e));
         res.send(resp);
       }
     });
 
     this.routes.post("/edituser", async (req: Request, res: Response) => {
       const newUserData: any = req.body;
-      const userId: number = req.body.userId;
+      const userId: string = req.body.userId;
 
       const resp = this.service
         .editUser(newUserData, userId)
-        .catch(() =>
-          console.log(
-            `[server]: User with id ${userId} is not authenticated, or doesn't exist`
-          )
-        );
+        .catch((e) => console.log(e));
       res.send(resp);
     });
 

@@ -1,6 +1,7 @@
 /** @format */
 
 import { Record, logColumnNames } from "../models/log.model";
+import { escape } from "mysql2";
 
 export default class LogService {
   public db: any;
@@ -14,12 +15,12 @@ export default class LogService {
       let query: string = `SELECT * FROM logs INNER JOIN authusers ON logs.userId='${id}' AND authusers.userId='${id}'`;
 
       if (decend === "true") {
-        query = `SELECT * FROM logs INNER JOIN authusers ON logs.userId='${id}' AND authusers.userId='${id}' ORDER BY recordId DESC`;
+        query = `SELECT * FROM logs INNER JOIN authusers ON logs.userId='${id}' AND authusers.userId='${id}' ORDER BY contactTime DESC`;
       }
 
       this.db.connection.query(query, (err: any, result: Record[]) => {
         if (err) {
-          reject(err);
+          reject(`[server] Error while getting log for user ${id} => ${err}`);
         } else {
           resolve(result);
         }
@@ -33,8 +34,9 @@ export default class LogService {
         `SELECT * FROM logs INNER JOIN authusers ON logs.recordId='${rid}' AND logs.userId='${uid}' AND authusers.userId='${uid}'`,
         (err: any, result: Record) => {
           if (err) {
-            console.log(err);
-            reject(err);
+            reject(
+              `[server]: Error while getting record ${rid} from user ${uid} => ${err}`
+            );
           } else {
             resolve(result);
           }
@@ -49,8 +51,9 @@ export default class LogService {
         `SELECT * FROM authusers WHERE userId='${uid}'`,
         (err: any, result: any) => {
           if (err) {
-            console.log(err);
-            reject(err);
+            reject(
+              `[server]: Error while adding record for user ${uid} => ${err}`
+            );
             return;
           }
           if (result.length === 0) {
@@ -59,11 +62,24 @@ export default class LogService {
           }
           if (result[0].userId === uid) {
             this.db.connection.query(
-              `INSERT INTO logs (${logColumnNames}) VALUES (UUID(), '${newRecord.userId}', '${newRecord.contactCall}', '${newRecord.freq}', '${newRecord.mode}', '${newRecord.sigRepSent}', '${newRecord.sigRepRecv}', '${newRecord.name}', '${newRecord.grid}', '${newRecord.serialSent}', '${newRecord.serialRecv}', '${newRecord.comment}', '${newRecord.lat}', '${newRecord.lng}', '${newRecord.country}', '${newRecord.details}', '${newRecord.contactDate}', '${newRecord.contactTime}', '${newRecord.utc}')`,
+              `INSERT INTO logs (${logColumnNames}) VALUES (UUID(), '${
+                newRecord.userId
+              }', '${newRecord.contactCall}', '${newRecord.freq}', '${
+                newRecord.mode
+              }', '${newRecord.sigRepSent}', '${newRecord.sigRepRecv}', '${
+                newRecord.name
+              }', '${newRecord.grid}', '${newRecord.serialSent}', '${
+                newRecord.serialRecv
+              }', ${escape(newRecord.comment)}, '${newRecord.lat}', '${
+                newRecord.lng
+              }', '${newRecord.country}', ${escape(newRecord.details)}, '${
+                newRecord.contactDate
+              }', '${newRecord.contactTime}', '${newRecord.utc}')`,
               (err: any, result: any) => {
                 if (err) {
-                  console.log(err);
-                  reject(err);
+                  reject(
+                    `[server]: Error while adding record for user ${uid} => ${err}`
+                  );
                 } else {
                   if (result.affectedRows) {
                     console.log(result);
@@ -87,7 +103,7 @@ export default class LogService {
       this.db.connection.query(
         `UPDATE logs, authusers
         SET
-            logs.userId='${newRecord.userId}',  
+            logs.userId='${newRecord.userId}',
             logs.contactCall='${newRecord.contactCall}', 
             logs.freq='${newRecord.freq}', 
             logs.mode='${newRecord.mode}', 
@@ -97,19 +113,22 @@ export default class LogService {
             logs.grid='${newRecord.grid}', 
             logs.serialSent='${newRecord.serialSent}', 
             logs.serialRecv='${newRecord.serialRecv}', 
-            logs.comment='${newRecord.comment}', 
+            logs.comment=${escape(newRecord.comment)}, 
             logs.lat='${newRecord.lat}', 
             logs.lng='${newRecord.lng}', 
             logs.country='${newRecord.country}', 
-            logs.details='${newRecord.details}', 
+            logs.details=${escape(newRecord.details)}, 
             logs.contactDate='${newRecord.contactDate}', 
             logs.contactTime='${newRecord.contactTime}', 
             logs.utc='${newRecord.utc}'
-          WHERE logs.userId='${id}' AND authusers.userId='${id}' AND logs.recordId='${newRecord.recordId}'`,
+          WHERE logs.userId='${id}' AND authusers.userId='${id}' AND logs.recordId='${
+          newRecord.recordId
+        }'`,
         (err: any, result: any) => {
           if (err) {
-            console.log(err);
-            reject(err);
+            reject(
+              `[server]: Error while editing record for user ${id} => ${err}`
+            );
           } else {
             if (result.affectedRows === 0) {
               reject(
@@ -132,11 +151,13 @@ export default class LogService {
         `DELETE logs.* FROM logs INNER JOIN authusers ON authusers.userId='${uid}' WHERE recordId='${recordId}'`,
         (err: any, result: any) => {
           if (err) {
-            reject(err);
+            reject(
+              `[server]: Error while deleting record ${recordId} for user ${uid} => ${err}`
+            );
           } else {
             if (result.affectedRows === 0) {
               reject(
-                `[server]: Record with id ${recordId} doesn't exist, or does not belong to user id ${uid}`
+                `[server]: Error while deleting record ${recordId} for user ${uid} => ${err}`
               );
             } else {
               resolve(result);
