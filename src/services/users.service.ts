@@ -9,7 +9,7 @@ export default class UserService {
     this.db = db;
   }
 
-  authUser(username: string, passwd: string): Promise<any> {
+  /*authUser(username: string, passwd: string): Promise<any> {
     return new Promise((resolve, reject) => {
       this.db.connection.query(
         `SELECT userId FROM users WHERE callsign='${username}' AND passwd=SHA2('${passwd}',512)`,
@@ -35,6 +35,25 @@ export default class UserService {
               resolve({ userId: "-1" });
             }
             resolve(results[0]);
+          }
+        }
+      );
+    });
+  }*/
+
+  authUser(username: string, passwd: string): Promise<any> {
+    return new Promise((resolve, reject) => {
+      this.db.connection.query(
+        `SELECT userId FROM users WHERE callsign='${username}' AND passwd=SHA2('${passwd}',512)`,
+        (err: any, results: any) => {
+          if (err) {
+            reject(`[server]: Error while authenticating user => ${err}`);
+          } else {
+            if (results.length > 0) {
+              resolve(results[0]);
+            } else {
+              resolve({ userId: "-1" });
+            }
           }
         }
       );

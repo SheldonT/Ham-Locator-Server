@@ -11,30 +11,28 @@ export default class UsersController {
   constructor(dbConn: any) {
     this.service = new UserService(dbConn);
 
-    this.routes.get("/", async (req: Request, res: Response) => {
-      const username: any = req.query.username;
-      const passwd: any = req.query.passwd;
+    this.routes.post("/", async (req: Request, res: Response) => {
+      const username: string = req.body.username;
+      const passwd: string = req.body.passwd;
 
-      const authUserId = await this.service
+      const authUser = await this.service
         .authUser(username, passwd)
         .catch((e) => console.log(e));
-      console.log(req.sessionID);
-      console.log(req.session);
 
-      /*req.session.regenerate(function (err) {
-        if (err) res.send(err);
-        // store user information in session, typically a user id
-        //console.log(req.session);
+      if (authUser !== "-1") {
+        req.session.user = authUser;
+        req.session.loggedIn = true;
+        res.set(
+          "Set-Cookie",
+          `connect.sid=${req.sessionID}; Path=/; HttpOnly;`
+        );
+      } else {
+        req.session.loggedIn = false;
+      }
 
-        // save the session before redirection to ensure page
-        // load does not happen before session is saved
-        req.session.save(function (err) {
-          if (err) return res.send(err);
-          res.redirect("/");
-        });
-      });*/
+      //res.set("Set-Cookie", `connect.sid=${req.sessionID}; Path=/; HttpOnly`);
 
-      res.send(authUserId);
+      res.send(authUser);
     });
 
     this.routes.get("/getuser", async (req: Request, res: Response) => {
@@ -72,3 +70,21 @@ export default class UsersController {
     // Add more routes inside the constructor
   }
 }
+
+/*const authUserId = await this.service
+        .authUser(username, passwd)
+        .catch((e) => console.log(e));
+      console.log(req.sessionID);
+      console.log(req.session);
+      req.session.regenerate(function (err) {
+        if (err) res.send(err);
+        // store user information in session, typically a user id
+        //console.log(req.session);
+
+        // save the session before redirection to ensure page
+        // load does not happen before session is saved
+        req.session.save(function (err) {
+          if (err) return res.send(err);
+          res.redirect("/");
+        });
+      });*/
