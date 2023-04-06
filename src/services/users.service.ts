@@ -9,37 +9,11 @@ export default class UserService {
     this.db = db;
   }
 
-  /*authUser(username: string, passwd: string): Promise<any> {
-    return new Promise((resolve, reject) => {
-      this.db.connection.query(
-        `SELECT userId FROM users WHERE callsign='${username}' AND passwd=SHA2('${passwd}',512)`,
-        (err: any, results: any) => {
-          if (err) {
-            reject(`[server]: Error while authenticating user => ${err}`);
-          } else {
-            if (results.length !== 0) {
-              this.db.connection.query(
-                `DELETE FROM authusers WHERE userId = '${Object.values(
-                  results[0]
-                )}'`
-              );
-              this.db.connection.query(
-                `INSERT INTO authusers (userId) VALUES ('${Object.values(
-                  results[0]
-                )}') `
-              );
-            } else {
-              console.log(
-                `[server]: Error while authenticating user => User with username ${username} doesn't exist`
-              );
-              resolve({ userId: "-1" });
-            }
-            resolve(results[0]);
-          }
-        }
-      );
-    });
-  }*/
+  /*
+    1. create method for getting userID from sessionID
+    2. use this method in other methods to get userID from session.
+    3. all methods will then take session ID as arguments instead of userID
+  */
 
   authUser(username: string, passwd: string): Promise<any> {
     return new Promise((resolve, reject) => {
@@ -60,6 +34,21 @@ export default class UserService {
     });
   }
 
+  sessionUser(sessionID: string): Promise<any> {
+    return new Promise((resolve, reject) => {
+      this.db.connection.query(
+        `SELECT data FROM sessions WHERE session_id='${sessionID} '`,
+        (err: any, result: any) => {
+          if (err) {
+            reject(`[server]: Error while getting session data => ${err}`);
+          } else {
+            resolve(JSON.parse(result[0].data).user); //return session ID to the client???
+          }
+        }
+      );
+    });
+  }
+
   getUser(id: any): Promise<UserData> {
     return new Promise((resolve, reject) => {
       let noPasswd: string[] = [];
@@ -73,7 +62,12 @@ export default class UserService {
           }
         }
       }
-
+      /*
+1. Use session ID to get session data
+2. parse userID from data
+3. use userID to get user data
+4. fail if session or user doesn't exist
+*/
       this.db.connection.query(
         `SELECT ${noPasswd} FROM users INNER JOIN authusers ON users.userId='${id}' AND authusers.userId='${id}'`,
         (err: any, results: UserData[]) => {

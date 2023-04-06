@@ -14,8 +14,7 @@ export const Routes = (dbConn: any): Router => {
   router.use("/logs", logController.routes);
 
   router.get("/", (req: Request, res: Response) => {
-    console.log(req);
-    res.send("Base Route Found");
+    console.log("base route");
   });
 
   return router;

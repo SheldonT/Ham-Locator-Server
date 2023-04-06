@@ -6,7 +6,7 @@ import { Routes } from "../controllers/routes";
 import Conn from "../database";
 import cors from "cors";
 import session from "express-session";
-//import cookieParser from "cookie-parser";
+import cookieParser from "cookie-parser";
 import * as expressSession from "express-session";
 import expressMySqlSession from "express-mysql-session";
 
@@ -27,7 +27,7 @@ export const ExpressLoader = (app: express.Application): void => {
   app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 
   app.use(express.json({ limit: "1mb" }));
-  //app.use(cookieParser());
+  app.use(cookieParser("keyboard cat"));
   app.use(
     session({
       secret: "keyboard cat",
@@ -37,7 +37,7 @@ export const ExpressLoader = (app: express.Application): void => {
       cookie: {
         maxAge: 1000 * 60 * 60 * 24,
         sameSite: "none",
-        secure: true,
+        secure: false,
       },
     })
   );
