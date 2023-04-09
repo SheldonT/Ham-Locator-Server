@@ -15,6 +15,26 @@ export default class UserService {
     3. all methods will then take session ID as arguments instead of userID
   */
 
+  fetchUserId(sessionID: string): Promise<any> {
+    return new Promise((resolve, reject) => {
+      let uID: string = "-1";
+
+      this.db.connection.query(
+        `SELECT data FROM sessions WHERE session_id='${sessionID}'`,
+        (err: any, results: any) => {
+          if (err) {
+            reject(
+              `[server]: Error while fetching session data from database => ${err}`
+            );
+          } else {
+            if (results[0]) uID = JSON.parse(results[0].data).user;
+          }
+          resolve(uID);
+        }
+      );
+    });
+  }
+
   authUser(username: string, passwd: string): Promise<any> {
     return new Promise((resolve, reject) => {
       this.db.connection.query(
@@ -24,9 +44,9 @@ export default class UserService {
             reject(`[server]: Error while authenticating user => ${err}`);
           } else {
             if (results.length > 0) {
-              resolve(results[0]);
+              resolve(results[0].userId);
             } else {
-              resolve({ userId: "-1" });
+              resolve("-1");
             }
           }
         }
@@ -34,15 +54,21 @@ export default class UserService {
     });
   }
 
-  sessionUser(sessionID: string): Promise<any> {
+  sessionUser(sessionID: string): Promise<boolean> {
     return new Promise((resolve, reject) => {
+      //this.fetchUserId(sessionID);
       this.db.connection.query(
         `SELECT data FROM sessions WHERE session_id='${sessionID} '`,
         (err: any, result: any) => {
           if (err) {
             reject(`[server]: Error while getting session data => ${err}`);
           } else {
-            resolve(JSON.parse(result[0].data).user); //return session ID to the client???
+            if (result[0]) {
+              //if (result[0].data) {
+              resolve(true);
+            } else {
+              resolve(false);
+            }
           }
         }
       );
@@ -62,16 +88,11 @@ export default class UserService {
           }
         }
       }
-      /*
-1. Use session ID to get session data
-2. parse userID from data
-3. use userID to get user data
-4. fail if session or user doesn't exist
-*/
+
       this.db.connection.query(
-        `SELECT ${noPasswd} FROM users INNER JOIN authusers ON users.userId='${id}' AND authusers.userId='${id}'`,
+        `SELECT ${noPasswd} FROM users WHERE userId='${id}'`,
         (err: any, results: UserData[]) => {
-          if (err || results.length === 0) {
+          if (err || !results[0]) {
             reject(
               `[server]: Error while fetching user info. User with id ${id} is not authenticated, or doesn't exist => ${err}`
             );
@@ -138,10 +159,10 @@ export default class UserService {
 
     return new Promise((resolve, reject) => {
       this.db.connection.query(
-        `UPDATE users, authusers
+        `UPDATE users
         SET
           ${includedUserInfo}
-          WHERE users.userId='${id}' AND authusers.userId='${id}' `,
+          WHERE users.userId='${id}'`,
         (err: any, result: any) => {
           if (err) {
             reject(`[Server}: Error while updating user informaiton => ${err}`);
@@ -153,6 +174,26 @@ export default class UserService {
               reject(
                 `[server]: No record with userId ${id} in user database, or user is not authenticated.`
               );
+            }
+          }
+        }
+      );
+    });
+  }
+
+  logout(sID: string): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      this.db.connection.query(
+        `DELETE sessions.* FROM sessions WHERE session_id='${sID}'`,
+        (err: any, result: any) => {
+          if (err) {
+            reject(`[server]: Error while logging out => ${err}`);
+          } else {
+            if (result.affectedRows) {
+              console.log(`[server]: User session ${sID} deleted`);
+              resolve(true);
+            } else {
+              resolve(false);
             }
           }
         }

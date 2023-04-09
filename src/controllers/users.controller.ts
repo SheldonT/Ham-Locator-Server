@@ -22,30 +22,47 @@ export default class UsersController {
       if (authUser !== "-1") {
         req.session.user = authUser;
         req.session.loggedIn = true;
-        res.set("Set-Cookie", `hlSession=${req.sessionID}; Path=/; HttpOnly;`);
+        //res.set("Set-Cookie", `hlSession=${req.sessionID}; Path=/; HttpOnly;`);
+        res.cookie("hlSession", req.sessionID, {
+          maxAge: 1000 * 60 * 60 * 24,
+          path: "/",
+          httpOnly: true,
+        });
+        res.send(req.sessionID);
       } else {
         req.session.loggedIn = false;
+        res.send("-1");
       }
-      console.log(authUser);
-      res.send(authUser);
     });
 
     this.routes.get("/session", async (req: Request, res: Response) => {
-      let userId: any = "-1";
+      let validSession: any = false;
 
       if (req.cookies.hlSession) {
-        userId = await this.service
+        validSession = await this.service
           .sessionUser(req.cookies.hlSession)
           .catch((e) => console.log(e));
-        res.send(userId);
+        if (validSession === true) {
+          res.send(req.cookies.hlSession);
+        } else {
+          res.send("-1");
+        }
+      } else {
+        res.send("-1");
       }
     });
 
     this.routes.get("/getuser", async (req: Request, res: Response) => {
       const id: any = req.query.id;
 
-      const resp = await this.service.getUser(id).catch((e) => console.log(e));
-      console.log(req);
+      const userId = await this.service
+        .fetchUserId(id)
+        .catch((e) => console.log(e));
+
+      const resp = await this.service
+        .getUser(userId)
+        .catch((e) => console.log(e));
+
       res.send(resp);
     });
 
@@ -65,7 +82,11 @@ export default class UsersController {
 
     this.routes.post("/edituser", async (req: Request, res: Response) => {
       const newUserData: any = req.body;
-      const userId: string = req.body.userId;
+      //const userId: string = req.body.userId;
+
+      const userId: string = await this.service
+        .fetchUserId(req.body.userId)
+        .catch((e) => console.log(e));
 
       const resp = this.service
         .editUser(newUserData, userId)
@@ -73,6 +94,14 @@ export default class UsersController {
       res.send(resp);
     });
 
-    // Add more routes inside the constructor
+    this.routes.get("/logout", async (req: Request, res: Response) => {
+      const sessionId: any = req.query.sessionId;
+
+      const isLoggedOut = await this.service
+        .logout(sessionId)
+        .catch((e) => console.log(e));
+
+      res.send(isLoggedOut);
+    });
   }
 }
