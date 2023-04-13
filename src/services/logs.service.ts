@@ -181,12 +181,10 @@ export default class LogService {
           console.log(err);
           return err;
         }
-        console.log("In Callback");
         return callBack(result);
         // r = result;
       }
     );
-    console.log("Outside callback");
     //return r;
 
     //************************************************ */

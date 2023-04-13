@@ -9,6 +9,7 @@ import session from "express-session";
 import cookieParser from "cookie-parser";
 import * as expressSession from "express-session";
 import expressMySqlSession from "express-mysql-session";
+import dotenv from "dotenv";
 
 declare module "express-session" {
   interface SessionData {
@@ -21,10 +22,11 @@ export const ExpressLoader = (app: express.Application): void => {
   const dbConn = new Conn();
   const MySQLStore = expressMySqlSession(expressSession);
   const sessionStore = new MySQLStore({}, dbConn.connection);
+  dotenv.config();
 
   app.set("trust proxy", 1);
 
-  app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+  app.use(cors({ origin: "http://localhost:8080", credentials: true }));
 
   app.use(express.json({ limit: "1mb" }));
   app.use(cookieParser("keyboard cat"));
