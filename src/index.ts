@@ -9,8 +9,9 @@ async function start() {
 
   const app: Express = express();
   const port = process.env.PORT;
+  const frontEndHost = process.env.FRONT_END_HOST;
 
-  ExpressLoader(app);
+  ExpressLoader(app, frontEndHost);
 
   app
     .listen(port, () =>

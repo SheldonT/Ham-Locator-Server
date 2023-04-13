@@ -18,7 +18,7 @@ declare module "express-session" {
   }
 }
 
-export const ExpressLoader = (app: express.Application): void => {
+export const ExpressLoader = (app: express.Application, feHost: any): void => {
   const dbConn = new Conn();
   const MySQLStore = expressMySqlSession(expressSession);
   const sessionStore = new MySQLStore({}, dbConn.connection);
@@ -26,7 +26,7 @@ export const ExpressLoader = (app: express.Application): void => {
 
   app.set("trust proxy", 1);
 
-  app.use(cors({ origin: "http://localhost:8080", credentials: true }));
+  app.use(cors({ origin: feHost, credentials: true }));
 
   app.use(express.json({ limit: "1mb" }));
   app.use(cookieParser("keyboard cat"));
