@@ -15,6 +15,7 @@ export const Routes = (dbConn: any): Router => {
 
   router.get("/", (req: Request, res: Response) => {
     console.log("base route");
+    res.send("Base Route Ham Locator Server");
   });
 
   return router;
