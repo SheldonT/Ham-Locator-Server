@@ -10,8 +10,9 @@ async function start() {
   const app: Express = express();
   const port = process.env.PORT;
   const frontEndHost = process.env.FRONT_END_HOST;
+  const secret = process.env.SECRET;
 
-  ExpressLoader(app, frontEndHost);
+  ExpressLoader(app, frontEndHost, secret);
 
   app
     .listen(port, () =>

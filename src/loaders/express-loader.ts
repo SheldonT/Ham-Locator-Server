@@ -18,7 +18,11 @@ declare module "express-session" {
   }
 }
 
-export const ExpressLoader = (app: express.Application, feHost: any): void => {
+export const ExpressLoader = (
+  app: express.Application,
+  feHost: any,
+  secret: any
+): void => {
   const dbConn = new Conn();
   const MySQLStore = expressMySqlSession(expressSession);
   const sessionStore = new MySQLStore({}, dbConn.connection);
@@ -29,17 +33,17 @@ export const ExpressLoader = (app: express.Application, feHost: any): void => {
   app.use(cors({ origin: feHost, credentials: true }));
 
   app.use(express.json({ limit: "1mb" }));
-  app.use(cookieParser("keyboard cat"));
+  app.use(cookieParser(secret));
   app.use(
     session({
-      secret: "keyboard cat",
+      secret: secret,
       resave: false,
       saveUninitialized: false,
       store: sessionStore,
       cookie: {
         maxAge: 1000 * 60 * 60 * 24,
         sameSite: "none",
-        secure: false,
+        secure: true,
       },
     })
   );
