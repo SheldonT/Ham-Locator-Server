@@ -24,7 +24,7 @@ export default class UsersController {
         req.session.loggedIn = true;
         //res.set("Set-Cookie", `hlSession=${req.sessionID}; Path=/; HttpOnly;`);
         res.cookie("hlSession", req.sessionID, {
-          maxAge: 1000 * 60 * 60 * 24,
+          maxAge: 1000 * 60 * 60 * 24 * 7,
           path: "/",
           httpOnly: true,
         });
