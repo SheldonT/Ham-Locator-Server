@@ -127,7 +127,7 @@ export default class UserService {
                   '${newUser.utc}',
                   SHA2('${newUser.password}',512))`);
               console.log(`[server]: User ${newUser.call} added`);
-              resolve(`User ${newUser.call} added`);
+              resolve(`OK`);
             } else {
               reject(
                 `[server]: User with username ${newUser.call} or email ${newUser.email} already exists`

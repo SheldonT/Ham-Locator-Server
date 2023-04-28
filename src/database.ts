@@ -1,7 +1,7 @@
 /** @format */
 import * as mysql from "mysql2";
 import { RecordSQL } from "./models/log.model";
-import { UserSQL } from "./models/user.model";
+import { UserSQL, userColumnNames } from "./models/user.model";
 
 class Conn {
   public connection: any;
@@ -22,6 +22,20 @@ class Conn {
 
     this.connection.query(`CREATE TABLE IF NOT EXISTS logs (${RecordSQL})`);
     this.connection.query(`CREATE TABLE IF NOT EXISTS users (${UserSQL})`);
+
+    this.connection
+      .query(`INSERT INTO users (${userColumnNames}) VALUES (UUID(), 
+    'DEMO',
+    'demo@demo.com',
+    'Canada',
+    '48.48',
+    '-55.47',
+    'GN37po',
+    'user',
+    'metric',
+    '9',
+    '3.5',
+    SHA2('Dem01234',512))`);
   }
 }
 
