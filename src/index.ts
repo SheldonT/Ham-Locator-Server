@@ -16,7 +16,9 @@ async function start() {
 
   app
     .listen(port, () =>
-      console.log(`[server]: Server is running on port ${port}`)
+      console.log(
+        `[server]: Ham-Locator-Server 1.16 is running on port ${port}`
+      )
     )
     .on("error", (err) => {
       console.log(`[server]: Error while starting server => ${err}`);
