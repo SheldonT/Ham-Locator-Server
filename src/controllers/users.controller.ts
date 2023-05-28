@@ -27,6 +27,7 @@ export default class UsersController {
         res.cookie("hlSession", req.sessionID, {
           maxAge: 1000 * 60 * 60 * 24 * 7,
           path: "/",
+          secure: true,
         });
         res.send(req.sessionID);
       } else {
