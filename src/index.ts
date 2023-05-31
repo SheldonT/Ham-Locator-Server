@@ -30,3 +30,5 @@ async function start() {
 }
 
 start();
+
+////"start": "nodemon ./src/index.ts --watch src --ext js,mjs,json,ts",
