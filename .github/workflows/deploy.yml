@@ -16,7 +16,7 @@ jobs:
       - name: Build and Install
         run: |
           npm ci
-          DISABLE_ESLING_PLUGIN=true npm run build
+          npm run build
 
       - name: Generate deployment package
         run: zip -r deploy.zip . -x '*.git*'
@@ -26,8 +26,8 @@ jobs:
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          application_name: ham-locator-server-test
-          environment_name: Ham-locator-server-test-env
-          version_label: 1.24
+          application_name: Ham-Locator-Server-116
+          environment_name: Ham-Locator-Svr-116-env
+          version_label: 1.25
           region: ca-central-1
           deployment_package: deploy.zip
