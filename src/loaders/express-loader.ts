@@ -7,8 +7,10 @@ import Conn from "../database";
 import cors from "cors";
 import session from "express-session";
 import cookieParser from "cookie-parser";
-import * as expressSession from "express-session";
-import expressMySqlSession from "express-mysql-session";
+import expressSession, { SessionOptions } from "express-session";
+import { RequestHandler } from "express-serve-static-core";
+import connectPgSimple from "connect-pg-simple";
+
 import dotenv from "dotenv";
 
 declare module "express-session" {
@@ -24,8 +26,18 @@ export const ExpressLoader = (
   secret: any
 ): void => {
   const dbConn = new Conn();
-  const MySQLStore = expressMySqlSession(expressSession);
-  const sessionStore = new MySQLStore({}, dbConn.connection);
+
+  //sessions options object of custom store option type defined above, with serializer function.
+  const sessionOptions = {
+    pgPromise: dbConn.pgConn,
+    tableName: "session",
+  };
+
+  const pgSession = connectPgSimple(
+    expressSession as (options?: SessionOptions) => RequestHandler
+  );
+  const pgStore = new pgSession(sessionOptions);
+
   dotenv.config();
 
   app.set("trust proxy", 1);
@@ -39,7 +51,7 @@ export const ExpressLoader = (
       secret: secret,
       resave: false,
       saveUninitialized: false,
-      store: sessionStore,
+      store: pgStore,
       cookie: {
         maxAge: 1000 * 60 * 60 * 24 * 7,
         sameSite: "none",

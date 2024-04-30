@@ -22,6 +22,31 @@ export interface Record {
   utc: number;
 }
 
+/////////PostgreSQL Migration
+export const RecordPSQL = `
+  recordId VARCHAR(255) PRIMARY KEY,
+  userId VARCHAR(255),
+  contactCall VARCHAR(255),
+  freq DOUBLE PRECISION,
+  mode VARCHAR(255),
+  sigRepSent INTEGER,
+  sigRepRecv INTEGER,
+  name VARCHAR(255),
+  grid VARCHAR(255),
+  serialSent INTEGER,
+  serialRecv INTEGER,
+  comment VARCHAR(255),
+  lat DOUBLE PRECISION,
+  lng DOUBLE PRECISION,
+  country VARCHAR(255),
+  details VARCHAR(255),
+  contactDate DATE,
+  contactTime TIME,
+  utc INTEGER
+  `;
+
+/////////////
+
 export const RecordSQL = `
   recordId VARCHAR(255) PRIMARY KEY,
   userId VARCHAR(255),

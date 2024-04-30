@@ -29,6 +29,7 @@ export default class UsersController {
           path: "/",
           secure: true,
         });
+
         res.send(req.sessionID);
       } else {
         req.session.loggedIn = false;
@@ -82,17 +83,19 @@ export default class UsersController {
     });
 
     this.routes.post("/edituser", async (req: Request, res: Response) => {
-      const newUserData: any = req.body;
-      //const userId: string = req.body.userId;
+      try {
+        const newUserData: any = req.body;
+        //const userId: string = req.body.userId;
 
-      const userId: string = await this.service
-        .fetchUserId(req.body.userId)
-        .catch((e) => console.log(e));
+        const userId: string = await this.service.fetchUserId(req.body.userId); // <-- FIX: User Id is actually a session ID
 
-      const resp = this.service
-        .editUser(newUserData, userId)
-        .catch((e) => console.log(e));
-      res.send(resp);
+        const resp = await this.service.editUser(newUserData, userId);
+
+        res.send(resp);
+      } catch (e) {
+        res.send("False");
+        console.log(e);
+      }
     });
 
     this.routes.get("/logout", async (req: Request, res: Response) => {

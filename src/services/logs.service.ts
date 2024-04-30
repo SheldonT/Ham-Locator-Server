@@ -1,7 +1,6 @@
 /** @format */
-
+import { as } from "pg-promise";
 import { Record, logColumnNames } from "../models/log.model";
-import { escape } from "mysql2";
 
 export default class LogService {
   public db: any;
@@ -11,134 +10,116 @@ export default class LogService {
   }
 
   fetchUserId(sessionID: string): Promise<any> {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       let uID: string = "-1";
 
-      this.db.connection.query(
-        `SELECT data FROM sessions WHERE session_id='${sessionID}'`,
-        (err: any, results: any) => {
-          if (err) {
-            reject(
-              `[server]: Error while fetching session data from database => ${err}`
-            );
-          } else {
-            if (results[0]) uID = JSON.parse(results[0].data).user;
-          }
-          resolve(uID);
-        }
+      const session = await this.db.pgConn.query(
+        `SELECT sess FROM session WHERE sid='${sessionID}'`
       );
+
+      if (session.length !== 0) {
+        uID = session[0].sess.user;
+      } else {
+        reject(
+          `[server]: Error while fetching session data from database. Session with ${sessionID} probably doesn't exist.`
+        );
+      }
+
+      resolve(uID);
     });
   }
 
   getLog(id: string, decend: string): Promise<Record[]> {
-    return new Promise((resolve, reject) => {
-      let query: string = `SELECT * FROM logs WHERE userId='${id}'`;
+    return new Promise(async (resolve, reject) => {
+      try {
+        let query: string = `SELECT * FROM logs WHERE userId='${id}'`;
 
-      if (decend === "true") {
-        query = `SELECT * FROM logs WHERE userId='${id}' ORDER BY contactTime DESC`;
-      }
-
-      this.db.connection.query(query, (err: any, result: Record[]) => {
-        if (err) {
-          reject(`[server] Error while getting log for user ${id} => ${err}`);
-        } else {
-          resolve(result);
+        if (decend === "true") {
+          query = `SELECT * FROM logs WHERE userId='${id}' ORDER BY contactTime DESC`;
         }
-      });
+
+        const logs = await this.db.pgConn.query(query);
+
+        console.log(`[server] Fetched logs for user ${id}.`);
+        resolve(logs);
+      } catch (e) {
+        reject(`[server] Error while getting log for user ${id} -> ${e}`);
+      }
     });
   }
 
   getRecord(uid: number, rid: number): Promise<Record> {
-    return new Promise((resolve, reject) => {
-      this.db.connection.query(
-        `SELECT * FROM logs WHERE recordId='${rid}' AND userId='${uid}'`,
-        (err: any, result: Record) => {
-          if (err) {
-            reject(
-              `[server]: Error while getting record ${rid} from user ${uid} => ${err}`
-            );
-          } else {
-            resolve(result);
-          }
-        }
+    return new Promise(async (resolve, reject) => {
+      const record = await this.db.pgConn.query(
+        `SELECT * FROM logs WHERE recordId='${rid}' AND userId='${uid}'`
       );
+
+      if (record.length !== 0) {
+        resolve(record[0]);
+      } else {
+        reject(
+          `[server]: Error while getting record ${rid} from user ${uid}. The record probably doesn't exist.`
+        );
+      }
     });
   }
 
-  addRecord(newRecord: Record, uid: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-      this.db.connection.query(
-        `INSERT INTO logs (${logColumnNames}) VALUES (UUID(), '${uid}', '${
-          newRecord.contactCall
-        }', '${newRecord.freq}', '${newRecord.mode}', '${
-          newRecord.sigRepSent
-        }', '${newRecord.sigRepRecv}', '${newRecord.name}', '${
-          newRecord.grid
-        }', '${newRecord.serialSent}', '${newRecord.serialRecv}', ${escape(
-          newRecord.comment
-        )}, '${newRecord.lat}', '${newRecord.lng}', '${
-          newRecord.country
-        }', ${escape(newRecord.details)}, '${newRecord.contactDate}', '${
-          newRecord.contactTime
-        }', '${newRecord.utc}')`,
-        (err: any, result: any) => {
-          if (err) {
-            reject(
-              `[server]: Error while adding record for user ${uid} => ${err}`
-            );
-          } else {
-            if (result.affectedRows) {
-              resolve(result);
-            } else {
-              reject(
-                `[server]: No record added. MySQL server response: ${result}`
-              );
-            }
-          }
-        }
-      );
+  addRecord(newRecord: Record, uid: string): Promise<boolean> {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const insertLog = await this.db.pgConn.query(
+          `INSERT INTO logs (${logColumnNames}) VALUES (uuid_generate_v4(), '${uid}', '${
+            newRecord.contactCall
+          }', '${newRecord.freq}', '${newRecord.mode}', '${
+            newRecord.sigRepSent
+          }', '${newRecord.sigRepRecv}', '${newRecord.name}', '${
+            newRecord.grid
+          }', '${newRecord.serialSent}', '${newRecord.serialRecv}', ${as.text(
+            newRecord.comment
+          )}, '${newRecord.lat}', '${newRecord.lng}', '${
+            newRecord.country
+          }', ${as.text(newRecord.details)}, '${newRecord.contactDate}', '${
+            newRecord.contactTime
+          }', '${newRecord.utc}')`
+        );
+
+        resolve(insertLog);
+      } catch (e) {
+        reject(`[server]: Error while adding record for user ${uid} => ${e}`);
+      }
     });
   }
 
   editRecord(newRecord: Record, id: number): Promise<Record> {
-    return new Promise((resolve, reject) => {
-      this.db.connection.query(
-        `UPDATE logs
+    return new Promise(async (resolve, reject) => {
+      try {
+        const updateLog = await this.db.pgConn.query(
+          `UPDATE logs
         SET
-            logs.contactCall='${newRecord.contactCall}', 
-            logs.freq='${newRecord.freq}', 
-            logs.mode='${newRecord.mode}', 
-            logs.sigRepSent='${newRecord.sigRepSent}', 
-            logs.sigRepRecv='${newRecord.sigRepRecv}', 
-            logs.name='${newRecord.name}', 
-            logs.grid='${newRecord.grid}', 
-            logs.serialSent='${newRecord.serialSent}', 
-            logs.serialRecv='${newRecord.serialRecv}', 
-            logs.comment=${escape(newRecord.comment)}, 
-            logs.lat='${newRecord.lat}', 
-            logs.lng='${newRecord.lng}', 
-            logs.country='${newRecord.country}', 
-            logs.details=${escape(newRecord.details)}, 
-            logs.contactDate='${newRecord.contactDate}', 
-            logs.contactTime='${newRecord.contactTime}', 
-            logs.utc='${newRecord.utc}'
-          WHERE userId='${id}' AND recordId='${newRecord.recordId}'`,
-        (err: any, result: any) => {
-          if (err) {
-            reject(
-              `[server]: Error while editing record for user ${id} => ${err}`
-            );
-          } else {
-            if (result.affectedRows === 0) {
-              reject(
-                `[server]: Owner of recordId ${newRecord.recordId} is not authenticated, or the record doesn't exist.`
-              );
-            } else {
-              resolve(result);
-            }
-          }
-        }
-      );
+            contactCall='${newRecord.contactCall}', 
+            freq='${newRecord.freq}', 
+            mode='${newRecord.mode}', 
+            sigRepSent='${newRecord.sigRepSent}', 
+            sigRepRecv='${newRecord.sigRepRecv}', 
+            name='${newRecord.name}', 
+            grid='${newRecord.grid}', 
+            serialSent='${newRecord.serialSent}', 
+            serialRecv='${newRecord.serialRecv}', 
+            comment=${as.text(newRecord.comment)}, 
+            lat='${newRecord.lat}', 
+            lng='${newRecord.lng}', 
+            country='${newRecord.country}', 
+            details=${as.text(newRecord.details)}, 
+            contactDate='${newRecord.contactDate}', 
+            contactTime='${newRecord.contactTime}', 
+            utc='${newRecord.utc}'
+          WHERE userId='${id}' AND recordId='${newRecord.recordId}'`
+        );
+
+        resolve(updateLog);
+      } catch (e) {
+        reject(`[server]: Error while editing record for user ${id} -> ${e}`);
+      }
     });
   }
 
@@ -146,28 +127,21 @@ export default class LogService {
 
   deleteRecord(uid: string, recordId: string): Promise<any> {
     return new Promise((resolve: any, reject: any) => {
-      this.db.connection.query(
-        `DELETE logs.* FROM logs WHERE recordId='${recordId}' AND userId='${uid}'`,
-        (err: any, result: any) => {
-          if (err) {
-            reject(
-              `[server]: Error while deleting record ${recordId} for user ${uid} => ${err}`
-            );
-          } else {
-            if (result.affectedRows === 0) {
-              reject(
-                `[server]: Error while deleting record ${recordId} for user ${uid} => ${err}`
-              );
-            } else {
-              resolve(result);
-            }
-          }
-        }
-      );
+      try {
+        const delRec = this.db.pgConn.query(
+          `DELETE FROM logs WHERE recordId='${recordId}' AND userId='${uid}'`
+        );
+
+        resolve(delRec);
+      } catch (e) {
+        reject(
+          `[server]: Error while deleting record ${recordId} for user ${uid} -> ${e}`
+        );
+      }
     });
   }
 
-  //************************************************ */
+  /************************************************
 
   //async function returning a value with type any
 
@@ -186,7 +160,6 @@ export default class LogService {
       }
     );
     //return r;
-
-    //************************************************ */
   }
+  ************************************************ */
 }

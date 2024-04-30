@@ -14,6 +14,24 @@ export interface UserData {
   password?: string;
 }
 
+//////////PostgreSQL Migration
+
+export const UserPSQL = `
+userId VARCHAR(255) PRIMARY KEY,
+callsign VARCHAR(255),
+email VARCHAR(255),
+country VARCHAR(255),
+lat DOUBLE PRECISION,
+lng DOUBLE PRECISION,
+gridloc VARCHAR(255),
+privilege VARCHAR(255),
+units VARCHAR(255),
+itu INTEGER,
+utc DOUBLE PRECISION,
+passwd VARCHAR(255)`;
+
+////////////
+
 export const UserSQL = `
 userId VARCHAR(255) PRIMARY KEY,
 callsign VARCHAR(255),
