@@ -1,47 +1,47 @@
 /** @format */
 
 export interface Record {
-  recordId: string;
-  userId: string;
-  contactCall: string;
+  record_id: string;
+  userid: string;
+  contact_call: string;
   freq: number;
   mode: string;
-  sigRepSent: number;
-  sigRepRecv: number;
+  sig_rep_sent: number;
+  sig_rep_recv: number;
   name?: string;
   grid?: string;
-  serialSent?: number;
-  serialRecv?: number;
+  serial_sent?: number;
+  serial_recv?: number;
   comment?: string;
   lat: number;
   lng: number;
   country?: string;
   details?: string;
-  contactDate: string;
-  contactTime: string;
+  contact_date: string;
+  contact_time: string;
   utc: number;
 }
 
 /////////PostgreSQL Migration
 export const RecordPSQL = `
-  recordId VARCHAR(255) PRIMARY KEY,
-  userId VARCHAR(255),
-  contactCall VARCHAR(255),
+  record_id VARCHAR(255) PRIMARY KEY,
+  user_id VARCHAR(255),
+  contact_call VARCHAR(255),
   freq DOUBLE PRECISION,
   mode VARCHAR(255),
-  sigRepSent INTEGER,
-  sigRepRecv INTEGER,
+  sig_rep_sent INTEGER,
+  sig_rep_recv INTEGER,
   name VARCHAR(255),
   grid VARCHAR(255),
-  serialSent INTEGER,
-  serialRecv INTEGER,
+  serial_sent INTEGER,
+  serial_recv INTEGER,
   comment VARCHAR(255),
   lat DOUBLE PRECISION,
   lng DOUBLE PRECISION,
   country VARCHAR(255),
   details VARCHAR(255),
-  contactDate DATE,
-  contactTime TIME,
+  contact_date DATE,
+  contact_time TIME,
   utc INTEGER
   `;
 
@@ -70,23 +70,23 @@ export const RecordSQL = `
   `;
 
 export const logColumnNames: string[] = [
-  "recordId",
-  "userId",
-  "contactCall",
+  "record_id",
+  "user_id",
+  "contact_call",
   "freq",
   "mode",
-  "sigRepSent",
-  "sigRepRecv",
+  "sig_rep_sent",
+  "sig_rep_recv",
   "name",
   "grid",
-  "serialSent",
-  "serialRecv",
+  "serial_sent",
+  "serial_recv",
   "comment",
   "lat",
   "lng",
   "country",
   "details",
-  "contactDate",
-  "contactTime",
+  "contact_date",
+  "contact_time",
   "utc",
 ];

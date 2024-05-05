@@ -53,7 +53,7 @@ class Conn {
     'metric',
     '9',
     '3.5',
-    encode(digest('Dem01234', 'sha512'), 'hex') )`);
+    encode(digest('Dem01234', 'sha512'), 'hex')) ON CONFLICT (callsign, email) DO NOTHING`);
     /////////
   }
 
