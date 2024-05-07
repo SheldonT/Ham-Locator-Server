@@ -32,10 +32,10 @@ export default class LogService {
   getLog(id: string, decend: string): Promise<Record[]> {
     return new Promise(async (resolve, reject) => {
       try {
-        let query: string = `SELECT * FROM logs WHERE userId='${id}'`;
+        let query: string = `SELECT * FROM logs WHERE user_id='${id}'`;
 
         if (decend === "true") {
-          query = `SELECT * FROM logs WHERE userId='${id}' ORDER BY contactTime DESC`;
+          query = `SELECT * FROM logs WHERE user_id='${id}' ORDER BY contact_time DESC`;
         }
 
         const logs = await this.db.pgConn.query(query);
@@ -51,7 +51,7 @@ export default class LogService {
   getRecord(uid: number, rid: number): Promise<Record> {
     return new Promise(async (resolve, reject) => {
       const record = await this.db.pgConn.query(
-        `SELECT * FROM logs WHERE recordId='${rid}' AND userId='${uid}'`
+        `SELECT * FROM logs WHERE record_id='${rid}' AND user_id='${uid}'`
       );
 
       if (record.length !== 0) {
@@ -69,17 +69,17 @@ export default class LogService {
       try {
         const insertLog = await this.db.pgConn.query(
           `INSERT INTO logs (${logColumnNames}) VALUES (uuid_generate_v4(), '${uid}', '${
-            newRecord.contactCall
+            newRecord.contact_call
           }', '${newRecord.freq}', '${newRecord.mode}', '${
-            newRecord.sigRepSent
-          }', '${newRecord.sigRepRecv}', '${newRecord.name}', '${
+            newRecord.sig_rep_sent
+          }', '${newRecord.sig_rep_recv}', '${newRecord.name}', '${
             newRecord.grid
-          }', '${newRecord.serialSent}', '${newRecord.serialRecv}', ${as.text(
+          }', '${newRecord.serial_sent}', '${newRecord.serial_recv}', ${as.text(
             newRecord.comment
           )}, '${newRecord.lat}', '${newRecord.lng}', '${
             newRecord.country
-          }', ${as.text(newRecord.details)}, '${newRecord.contactDate}', '${
-            newRecord.contactTime
+          }', ${as.text(newRecord.details)}, '${newRecord.contact_date}', '${
+            newRecord.contact_time
           }', '${newRecord.utc}')`
         );
 
@@ -96,24 +96,24 @@ export default class LogService {
         const updateLog = await this.db.pgConn.query(
           `UPDATE logs
         SET
-            contactCall='${newRecord.contactCall}', 
+            contact_call='${newRecord.contact_call}', 
             freq='${newRecord.freq}', 
             mode='${newRecord.mode}', 
-            sigRepSent='${newRecord.sigRepSent}', 
-            sigRepRecv='${newRecord.sigRepRecv}', 
+            sig_rep_sent='${newRecord.sig_rep_sent}', 
+            sig_rep_recv='${newRecord.sig_rep_recv}', 
             name='${newRecord.name}', 
             grid='${newRecord.grid}', 
-            serialSent='${newRecord.serialSent}', 
-            serialRecv='${newRecord.serialRecv}', 
+            serial_sent='${newRecord.serial_sent}', 
+            serial_recv='${newRecord.serial_recv}', 
             comment=${as.text(newRecord.comment)}, 
             lat='${newRecord.lat}', 
             lng='${newRecord.lng}', 
             country='${newRecord.country}', 
             details=${as.text(newRecord.details)}, 
-            contactDate='${newRecord.contactDate}', 
-            contactTime='${newRecord.contactTime}', 
+            contact_date='${newRecord.contact_date}', 
+            contact_time='${newRecord.contact_time}', 
             utc='${newRecord.utc}'
-          WHERE userId='${id}' AND recordId='${newRecord.recordId}'`
+          WHERE user_id='${id}' AND record_id='${newRecord.record_id}'`
         );
 
         resolve(updateLog);
@@ -129,7 +129,7 @@ export default class LogService {
     return new Promise((resolve: any, reject: any) => {
       try {
         const delRec = this.db.pgConn.query(
-          `DELETE FROM logs WHERE recordId='${recordId}' AND userId='${uid}'`
+          `DELETE FROM logs WHERE record_id='${recordId}' AND user_id='${uid}'`
         );
 
         resolve(delRec);
