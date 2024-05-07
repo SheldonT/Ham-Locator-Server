@@ -5,5 +5,5 @@ dist
 /.env
 /.env_local
 /.dockerignore
-/Dockerfile
-/fly.toml
+Dockerfile
+fly.toml
