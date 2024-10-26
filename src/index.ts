@@ -1,5 +1,7 @@
 /** @format */
 
+import fs from "fs";
+import https from "https";
 import express, { Express } from "express";
 import { ExpressLoader } from "./loaders/express-loader";
 import dotenv from "dotenv";
@@ -12,9 +14,17 @@ async function start() {
   const frontEndHost = process.env.FRONT_END_HOST;
   const secret = process.env.SECRET;
 
+  const certFiles = {
+    key: fs.readFileSync("/etc/letsencrypt/live/hamlocator.space/privkey.pem"),
+    cert: fs.readFileSync(
+      "/etc/letsencrypt/live/hamlocator.space/fullchain.pem"
+    ),
+  };
+
   ExpressLoader(app, frontEndHost, secret);
 
-  app
+  https
+    .createServer(certFiles, app)
     .listen(port, () =>
       console.log(
         `[server]: Ham-Locator-Server 1.16 is running on port ${port}`
