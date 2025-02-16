@@ -7,3 +7,4 @@ dist
 /.dockerignore
 Dockerfile
 fly.toml
+*.sql
