@@ -26,6 +26,8 @@ async function start() {
   /*
   https
     .createServer(certFiles, app)
+  */
+  app
     .listen(port, () =>
       console.log(
         `[server]: Ham-Locator-Server 1.16 is running on port ${port}`
@@ -38,7 +40,6 @@ async function start() {
     .on("close", async () => {
       console.log(`[server]: Server closed`);
     });
-  */
 }
 
 start();

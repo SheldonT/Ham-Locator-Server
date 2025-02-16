@@ -8,3 +8,4 @@ dist
 Dockerfile
 fly.toml
 *.sql
+*.db
