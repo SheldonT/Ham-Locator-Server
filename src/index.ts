@@ -23,6 +23,7 @@ async function start() {
 
   ExpressLoader(app, frontEndHost, secret);
 
+  /*
   https
     .createServer(certFiles, app)
     .listen(port, () =>
@@ -37,6 +38,7 @@ async function start() {
     .on("close", async () => {
       console.log(`[server]: Server closed`);
     });
+  */
 }
 
 start();
