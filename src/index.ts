@@ -10,16 +10,18 @@ async function start() {
   dotenv.config();
 
   const app: Express = express();
-  const port = process.env.PORT;
+  const port = process.env.HTTP_PORT;
   const frontEndHost = process.env.FRONT_END_HOST;
   const secret = process.env.SECRET;
 
+  /*
   const certFiles = {
     key: fs.readFileSync("/etc/letsencrypt/live/hamlocator.space/privkey.pem"),
     cert: fs.readFileSync(
       "/etc/letsencrypt/live/hamlocator.space/fullchain.pem"
     ),
   };
+  */
 
   ExpressLoader(app, frontEndHost, secret);
 
@@ -27,19 +29,18 @@ async function start() {
   https
     .createServer(certFiles, app)
   */
-  app
-    .listen(port, () =>
-      console.log(
-        `[server]: Ham-Locator-Server 1.16 is running on port ${port}`
-      )
-    )
-    .on("error", (err) => {
-      console.log(`[server]: Error while starting server => ${err}`);
-      process.exit(1);
-    })
-    .on("close", async () => {
-      console.log(`[server]: Server closed`);
-    });
+  const server = app.listen(port, () =>
+    console.log(`[server]: Ham-Locator-Server 1.16 is running on port ${port}`)
+  );
+
+  server.on("error", (err) => {
+    console.log(`[server]: Error while starting server => ${err}`);
+    process.exit(1);
+  });
+
+  server.on("close", async () => {
+    console.log(`[server]: Server closed`);
+  });
 }
 
 start();
